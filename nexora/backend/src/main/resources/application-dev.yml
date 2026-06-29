@@ -1,0 +1,8 @@
+spring:
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.nexora: DEBUG
+    org.springframework.web: DEBUG

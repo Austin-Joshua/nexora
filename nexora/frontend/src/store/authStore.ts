@@ -1,0 +1,44 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { User, UserRole } from '../types/User';
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  setUser: (user: User) => void;
+  setToken: (token: string) => void;
+  setUserRole: (role: UserRole) => void;
+  logout: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+
+      setUser: (user) => set({ user, isAuthenticated: true }),
+
+      setToken: (token) => {
+        localStorage.setItem('nexora_token', token);
+        set({ token });
+      },
+
+      setUserRole: (role) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, userRole: role } : null,
+        })),
+
+      logout: () => {
+        localStorage.removeItem('nexora_token');
+        set({ user: null, token: null, isAuthenticated: false });
+      },
+    }),
+    {
+      name: 'nexora_auth',
+      partialize: (state) => ({ user: state.user, token: state.token, isAuthenticated: state.isAuthenticated }),
+    }
+  )
+);

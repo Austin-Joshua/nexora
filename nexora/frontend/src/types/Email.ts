@@ -1,0 +1,46 @@
+export type EmailCategory =
+  | 'ASSIGNMENT' | 'ATTENDANCE' | 'HACKATHON' | 'PLACEMENT' | 'INTERNSHIP'
+  | 'MEETING' | 'ANNOUNCEMENT' | 'RESEARCH' | 'FINANCE' | 'PERSONAL'
+  | 'PROMOTIONAL' | 'SPAM' | 'UNCATEGORIZED';
+
+export type Priority = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export type ActionType = 'REGISTER' | 'REPLY' | 'SUBMIT' | 'UPLOAD' | 'REVIEW' | 'ATTEND' | 'OTHER';
+
+export interface ActionItem {
+  id: number;
+  actionType: ActionType;
+  actionDescription: string;
+  deadline?: string;
+  isCompleted: boolean;
+}
+
+export interface Email {
+  id: number;
+  gmailMessageId: string;
+  gmailThreadId?: string;
+  senderName?: string;
+  senderEmail: string;
+  subject?: string;
+  bodySnippet?: string;
+  bodyFull?: string;
+  receivedAt?: string;
+  isRead: boolean;
+  hasAttachments: boolean;
+  category: EmailCategory;
+  priority: Priority;
+  aiSummary?: string;
+  aiActionItems?: string;
+  deadlineDetected?: string;
+  isDeadlineAddedToCalendar: boolean;
+  actions?: ActionItem[];
+  createdAt?: string;
+}
+
+export interface EmailPage {
+  content: Email[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}

@@ -1,0 +1,28 @@
+# IDEs and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.local
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*
+
+# Frontend dependencies and builds
+**/node_modules/
+**/dist/
+**/.cache/
+
+# Backend dependencies and builds
+**/target/
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+**/*.db
+**/h2_db/
+
+# Log files
+**/*.log
