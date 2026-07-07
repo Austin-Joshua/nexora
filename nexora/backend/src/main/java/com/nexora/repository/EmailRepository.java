@@ -56,4 +56,23 @@ public interface EmailRepository extends JpaRepository<Email, Long> {
     List<Email> findTop20ByUserIdOrderByReceivedAtDesc(Long userId);
 
     long countByUserIdAndIsReadFalse(Long userId);
+
+    /**
+     * Returns grouped sender statistics: sender email, sender name, count of emails,
+     * most recent received date, and most recent subject — ordered by count descending.
+     */
+    @Query("""
+        SELECT e.senderEmail, e.senderName, COUNT(e), MAX(e.receivedAt), MAX(e.subject)
+        FROM Email e
+        WHERE e.user.id = :userId
+        GROUP BY e.senderEmail, e.senderName
+        ORDER BY COUNT(e) DESC
+        """)
+    List<Object[]> countBySenderForUser(@Param("userId") Long userId);
+
+    /**
+     * Fetch all emails from a specific sender for a given user, newest first.
+     */
+    Page<Email> findByUserIdAndSenderEmailOrderByReceivedAtDesc(
+            Long userId, String senderEmail, Pageable pageable);
 }

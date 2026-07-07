@@ -1,5 +1,6 @@
 package com.nexora.service;
 
+import com.nexora.dto.response.SenderSummaryResponse;
 import com.nexora.exception.NexoraException;
 import com.nexora.model.Email;
 import com.nexora.model.Email.EmailCategory;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,6 +72,31 @@ public class EmailService {
             counts.put(row[0].toString(), (Long) row[1]);
         }
         return counts;
+    }
+
+    /**
+     * Returns a ranked list of senders grouped by email count, descending.
+     */
+    public List<SenderSummaryResponse> getSenderSummary(Long userId) {
+        List<Object[]> rows = emailRepository.countBySenderForUser(userId);
+        return rows.stream().map(row -> SenderSummaryResponse.builder()
+                .senderEmail((String) row[0])
+                .senderName((String) row[1])
+                .emailCount((Long) row[2])
+                .latestReceivedAt((LocalDateTime) row[3])
+                .latestSubject((String) row[4])
+                .build()
+        ).collect(Collectors.toList());
+    }
+
+    /**
+     * Returns paginated emails from a specific sender for a user.
+     */
+    public Page<EmailResponse> getEmailsBySender(Long userId, String senderEmail, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("receivedAt").descending());
+        Page<Email> emailPage = emailRepository
+                .findByUserIdAndSenderEmailOrderByReceivedAtDesc(userId, senderEmail, pageable);
+        return emailPage.map(e -> toResponse(e, false));
     }
 
     public EmailResponse toResponse(Email email, boolean includeFullBody) {

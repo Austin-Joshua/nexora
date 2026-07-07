@@ -1,6 +1,7 @@
 package com.nexora.controller;
 
 import com.nexora.dto.response.EmailResponse;
+import com.nexora.dto.response.SenderSummaryResponse;
 import com.nexora.model.User;
 import com.nexora.service.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -53,5 +55,28 @@ public class EmailController {
             @PathVariable Long id) {
         emailService.markRead(user.getId(), id);
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Returns a ranked list of senders with email count and latest subject.
+     * Used by the frontend "Senders" tab in the inbox.
+     */
+    @GetMapping("/by-sender")
+    public ResponseEntity<List<SenderSummaryResponse>> getEmailsBySender(
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(emailService.getSenderSummary(user.getId()));
+    }
+
+    /**
+     * Returns paginated emails from a specific sender email address.
+     */
+    @GetMapping("/sender/{senderEmail}")
+    public ResponseEntity<Page<EmailResponse>> getEmailsFromSender(
+            @AuthenticationPrincipal User user,
+            @PathVariable String senderEmail,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(
+                emailService.getEmailsBySender(user.getId(), senderEmail, page, size));
     }
 }

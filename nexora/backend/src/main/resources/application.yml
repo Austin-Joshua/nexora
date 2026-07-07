@@ -18,6 +18,18 @@ spring:
         format_sql: true
   jackson:
     default-property-inclusion: non_null
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,beans
 
 server:
   port: 8080

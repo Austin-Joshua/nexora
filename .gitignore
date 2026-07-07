@@ -1,28 +1,62 @@
-# IDEs and OS
+# ──────────────────────────────────────────────────
+# IDEs and OS artifacts
+# ──────────────────────────────────────────────────
 .vscode/
 .idea/
+*.iml
 .DS_Store
 Thumbs.db
 *.local
 
-# Environment variables & secrets
+# ──────────────────────────────────────────────────
+# Environment variables & secrets (NEVER commit these)
+# ──────────────────────────────────────────────────
 .env
 .env.local
-.env.*
+.env.development
+.env.production
+.env.*.local
 
-# Frontend dependencies and builds
+# ──────────────────────────────────────────────────
+# Frontend (Node / Vite / React)
+# ──────────────────────────────────────────────────
 **/node_modules/
 **/dist/
 **/.cache/
+**/.vite/
+**/.next/
+**/out/
 
-# Backend dependencies and builds
+# ──────────────────────────────────────────────────
+# Backend (Java / Maven / Spring Boot)
+# ──────────────────────────────────────────────────
 **/target/
 **/*.class
 **/*.jar
 **/*.war
 **/*.ear
+**/*.nar
+**/hs_err_pid*
+**/replay_pid*
+
+# ──────────────────────────────────────────────────
+# Database files
+# ──────────────────────────────────────────────────
 **/*.db
+**/*.h2.mv.db
+**/*.h2.trace.db
 **/h2_db/
 
+# ──────────────────────────────────────────────────
 # Log files
+# ──────────────────────────────────────────────────
 **/*.log
+**/logs/
+
+# ──────────────────────────────────────────────────
+# OS-generated files
+# ──────────────────────────────────────────────────
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk

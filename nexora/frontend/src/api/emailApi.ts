@@ -1,6 +1,14 @@
 import axiosInstance from './axiosInstance';
 import type { EmailPage } from '../types/Email';
 
+export interface SenderSummary {
+  senderEmail: string;
+  senderName: string | null;
+  emailCount: number;
+  latestSubject: string | null;
+  latestReceivedAt: string | null;
+}
+
 export const emailApi = {
   getEmails: async (params: {
     category?: string;
@@ -30,5 +38,24 @@ export const emailApi = {
 
   markRead: async (id: number): Promise<void> => {
     await axiosInstance.patch(`/api/emails/${id}/read`);
+  },
+
+  /** Returns all senders ranked by email count with latest subject */
+  getSenderSummary: async (): Promise<SenderSummary[]> => {
+    const { data } = await axiosInstance.get<SenderSummary[]>('/api/emails/by-sender');
+    return data;
+  },
+
+  /** Returns paginated emails from a specific sender email address */
+  getEmailsFromSender: async (
+    senderEmail: string,
+    page = 0,
+    size = 20,
+  ): Promise<EmailPage> => {
+    const { data } = await axiosInstance.get<EmailPage>(
+      `/api/emails/sender/${encodeURIComponent(senderEmail)}`,
+      { params: { page, size } },
+    );
+    return data;
   },
 };

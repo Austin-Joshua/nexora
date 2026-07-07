@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { Zap, Brain, Bell, Shield, Mail, ArrowRight, CheckCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { Zap, Brain, Bell, Shield, Mail, ArrowRight, CheckCircle, AlertTriangle, X } from 'lucide-react';
 
 const FEATURES = [
   {
@@ -46,6 +47,15 @@ const TRUST_POINTS = [
 export const LandingPage: React.FC = () => {
   const { handleGoogleLogin } = useAuth();
   const orbRef = useRef<HTMLDivElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const authError = searchParams.get('auth_error');
+  const [showErrorBanner, setShowErrorBanner] = useState(!!authError);
+
+  const dismissError = () => {
+    setShowErrorBanner(false);
+    searchParams.delete('auth_error');
+    setSearchParams(searchParams, { replace: true });
+  };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -114,6 +124,52 @@ export const LandingPage: React.FC = () => {
           </button>
         </div>
       </nav>
+
+      {/* Auth Error Banner */}
+      {showErrorBanner && (
+        <div
+          className="relative z-10 mx-6 mt-4 rounded-2xl px-5 py-4 flex items-start gap-4 animate-fade-in"
+          style={{
+            background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.3)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}
+          >
+            <AlertTriangle size={16} className="text-red-400" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-red-300 mb-1">
+              Google Sign-In Blocked — Account Not Authorized
+            </p>
+            <p className="text-xs text-red-400/80 leading-relaxed mb-2">
+              Your Google account is not listed as a Test User in the Google Cloud Console.
+              This happens when the OAuth app is in <span className="font-semibold text-red-300">"Testing"</span> mode.
+            </p>
+            <div className="flex flex-wrap gap-2 items-center">
+              <p className="text-xs text-slate-500">To fix: </p>
+              <a
+                href="https://console.cloud.google.com/apis/credentials/consent"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors font-semibold"
+              >
+                Open OAuth Consent Screen →
+              </a>
+              <span className="text-xs text-slate-600">click "Add Users" and add your Gmail address</span>
+            </div>
+          </div>
+          <button
+            onClick={dismissError}
+            className="p-1.5 text-red-500/60 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10 flex-shrink-0"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Hero */}
       <section className="relative flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">

@@ -4,11 +4,9 @@ import { useAuthStore } from '../store/authStore';
 import { PageLoader } from '../components/common/LoadingSpinner';
 
 /**
- * This page handles the OAuth callback redirect from the backend.
- * The backend's /api/auth/google/callback returns JSON — but if configured
- * to redirect to frontend instead, this component reads JWT from URL params.
- *
- * Usage: Backend redirects to /auth/callback?token=JWT&onboarding=true|false
+ * Handles the OAuth callback redirect from the backend.
+ * Backend redirects to /auth/callback?token=JWT&onboarding=true|false
+ * Google may also redirect here with ?error=access_denied&error_description=...
  */
 export const AuthCallbackPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +14,15 @@ export const AuthCallbackPage: React.FC = () => {
   const { setToken, setUser } = useAuthStore();
 
   useEffect(() => {
+    // Handle Google OAuth errors (e.g., "access_denied", "no_access")
+    const error = searchParams.get('error');
+    if (error) {
+      console.warn('Google OAuth error:', error, searchParams.get('error_description'));
+      // Redirect to landing with an error flag so user sees a friendly message
+      navigate(`/?auth_error=${encodeURIComponent(error)}`, { replace: true });
+      return;
+    }
+
     const token    = searchParams.get('token');
     const onboard  = searchParams.get('onboarding') === 'true';
     const userId   = searchParams.get('userId');
@@ -38,6 +45,7 @@ export const AuthCallbackPage: React.FC = () => {
       }
       navigate(onboard ? '/onboarding' : '/dashboard', { replace: true });
     } else {
+      // No token and no error — something unexpected, go home
       navigate('/', { replace: true });
     }
   }, []);

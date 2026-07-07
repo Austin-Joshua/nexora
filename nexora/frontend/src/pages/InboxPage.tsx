@@ -3,28 +3,33 @@ import { useSearchParams } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { EmailList } from '../components/email/EmailList';
 import { EmailDetail } from '../components/email/EmailDetail';
+import { SenderView } from '../components/email/SenderView';
 import { useEmails } from '../hooks/useEmails';
 import { useEmailStore } from '../store/emailStore';
 import type { EmailCategory } from '../types/Email';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, Users } from 'lucide-react';
 
-const CATEGORIES: Array<{ key: EmailCategory | 'ALL'; label: string; emoji: string }> = [
+type ViewMode = EmailCategory | 'ALL' | 'SENDERS';
+
+const CATEGORIES: Array<{ key: ViewMode; label: string; emoji: string }> = [
   { key: 'ALL',          label: 'All',          emoji: '📥' },
-  { key: 'ASSIGNMENT',   label: 'Assignments',  emoji: '📚' },
-  { key: 'HACKATHON',    label: 'Hackathons',   emoji: '🚀' },
-  { key: 'PLACEMENT',    label: 'Placement',    emoji: '💼' },
-  { key: 'INTERNSHIP',   label: 'Internships',  emoji: '🌟' },
-  { key: 'MEETING',      label: 'Meetings',     emoji: '📅' },
-  { key: 'ATTENDANCE',   label: 'Attendance',   emoji: '🎓' },
-  { key: 'ANNOUNCEMENT', label: 'Announcements',emoji: '📢' },
-  { key: 'RESEARCH',     label: 'Research',     emoji: '🔬' },
-  { key: 'PERSONAL',     label: 'Personal',     emoji: '👤' },
+  { key: 'SENDERS',     label: 'Senders',      emoji: '👤' },
+  { key: 'ASSIGNMENT',  label: 'Assignments',  emoji: '📚' },
+  { key: 'HACKATHON',   label: 'Hackathons',   emoji: '🚀' },
+  { key: 'PLACEMENT',   label: 'Placement',    emoji: '💼' },
+  { key: 'INTERNSHIP',  label: 'Internships',  emoji: '🌟' },
+  { key: 'MEETING',     label: 'Meetings',     emoji: '📅' },
+  { key: 'ATTENDANCE',  label: 'Attendance',   emoji: '🎓' },
+  { key: 'ANNOUNCEMENT',label: 'Announcements',emoji: '📢' },
+  { key: 'RESEARCH',    label: 'Research',     emoji: '🔬' },
+  { key: 'PERSONAL',    label: 'Personal',     emoji: '👤' },
 ];
 
 export const InboxPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const urlEmailId = searchParams.get('emailId');
   const [showFilters, setShowFilters] = useState(false);
+  const [activeView, setActiveView] = useState<ViewMode>('ALL');
 
   const { activeCategory, setActiveCategory, selectedEmail, setSelectedEmail } = useEmailStore();
   const { emails, isLoading, categoryCounts } = useEmails();
@@ -36,74 +41,90 @@ export const InboxPage: React.FC = () => {
     }
   }, [urlEmailId, emails]);
 
+  const handleTabClick = (key: ViewMode) => {
+    setActiveView(key);
+    if (key !== 'SENDERS') {
+      setActiveCategory(key as EmailCategory | 'ALL');
+    }
+    setSelectedEmail(null);
+  };
+
   return (
     <AppShell title="Inbox" subtitle="Your Gmail, intelligently organized">
-      <div className="flex h-full overflow-hidden">
-        {/* Left panel: list */}
-        <div className="w-96 flex-shrink-0 border-r flex flex-col overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          {/* Category tabs */}
-          <div
-            className="flex-shrink-0 border-b"
-            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
-          >
-            {/* Category scroll */}
-            <div className="overflow-x-auto">
-              <div className="flex gap-1 p-3 min-w-max">
-                {CATEGORIES.map(({ key, label, emoji }) => {
-                  const isActive = activeCategory === key;
-                  const count = key !== 'ALL' ? (categoryCounts[key] ?? 0) : undefined;
-                  return (
-                    <button
-                      key={key}
-                      id={`category-tab-${key.toLowerCase()}`}
-                      onClick={() => setActiveCategory(key)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200"
-                      style={isActive ? {
-                        background: 'rgba(99,102,241,0.15)',
-                        border: '1px solid rgba(99,102,241,0.3)',
-                        color: '#a5b4fc',
-                        boxShadow: '0 2px 8px rgba(99,102,241,0.15)',
-                      } : {
-                        background: 'transparent',
-                        border: '1px solid transparent',
-                        color: 'rgba(100,116,139,0.9)',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isActive) {
-                          (e.currentTarget as HTMLElement).style.color = 'white';
-                          (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isActive) {
-                          (e.currentTarget as HTMLElement).style.color = 'rgba(100,116,139,0.9)';
-                          (e.currentTarget as HTMLElement).style.background = 'transparent';
-                        }
-                      }}
-                    >
-                      <span className="text-[11px]">{emoji}</span>
-                      {label}
-                      {count !== undefined && count > 0 && (
-                        <span
-                          className="ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                          style={isActive ? {
-                            background: 'rgba(99,102,241,0.25)',
-                            color: '#c7d2fe',
-                          } : {
-                            background: 'rgba(255,255,255,0.08)',
-                            color: '#64748b',
-                          }}
-                        >
-                          {count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+      <div className="flex h-full overflow-hidden flex-col">
+        {/* Category / View tabs */}
+        <div
+          className="flex-shrink-0 border-b"
+          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        >
+          {/* Tab scroll */}
+          <div className="overflow-x-auto">
+            <div className="flex gap-1 p-3 min-w-max">
+              {CATEGORIES.map(({ key, label, emoji }) => {
+                const isActive = activeView === key;
+                const isSenders = key === 'SENDERS';
+                const count = !isSenders && key !== 'ALL'
+                  ? (categoryCounts[key as string] ?? 0)
+                  : undefined;
 
-            {/* Filter toggle */}
+                return (
+                  <button
+                    key={key}
+                    id={`category-tab-${key.toLowerCase()}`}
+                    onClick={() => handleTabClick(key)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200"
+                    style={isActive ? {
+                      background: isSenders
+                        ? 'rgba(16,185,129,0.15)'
+                        : 'rgba(99,102,241,0.15)',
+                      border: `1px solid ${isSenders ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)'}`,
+                      color: isSenders ? '#6ee7b7' : '#a5b4fc',
+                      boxShadow: `0 2px 8px ${isSenders ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)'}`,
+                    } : {
+                      background: 'transparent',
+                      border: '1px solid transparent',
+                      color: 'rgba(100,116,139,0.9)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLElement).style.color = 'white';
+                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLElement).style.color = 'rgba(100,116,139,0.9)';
+                        (e.currentTarget as HTMLElement).style.background = 'transparent';
+                      }
+                    }}
+                  >
+                    <span className="text-[11px]">{emoji}</span>
+                    {label}
+                    {isSenders && isActive && (
+                      <Users size={10} className="ml-0.5 text-emerald-400" />
+                    )}
+                    {count !== undefined && count > 0 && (
+                      <span
+                        className="ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                        style={isActive ? {
+                          background: 'rgba(99,102,241,0.25)',
+                          color: '#c7d2fe',
+                        } : {
+                          background: 'rgba(255,255,255,0.08)',
+                          color: '#64748b',
+                        }}
+                      >
+                        {count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Filter toggle (only shown for email list views) */}
+          {activeView !== 'SENDERS' && (
             <div className="px-3 pb-2 flex items-center justify-between">
               <span className="text-[10px] text-slate-600 font-semibold">
                 {emails.length} email{emails.length !== 1 ? 's' : ''}
@@ -116,29 +137,40 @@ export const InboxPage: React.FC = () => {
                 {showFilters ? 'Hide' : 'Filter'}
               </button>
             </div>
-          </div>
-
-          {/* Email list */}
-          <div className="flex-1 overflow-y-auto">
-            <EmailList
-              emails={emails}
-              isLoading={isLoading}
-              onEmailSelect={(email) => setSelectedEmail(email)}
-            />
-          </div>
+          )}
         </div>
 
-        {/* Right panel: detail */}
+        {/* Content area */}
         <div className="flex-1 overflow-hidden">
-          {selectedEmail ? (
-            <div className="h-full animate-slide-right">
-              <EmailDetail
-                emailId={selectedEmail.id}
-                onClose={() => setSelectedEmail(null)}
-              />
-            </div>
+          {activeView === 'SENDERS' ? (
+            <SenderView />
           ) : (
-            <EmptyDetail />
+            <div className="flex h-full overflow-hidden">
+              {/* Left panel: list */}
+              <div className="w-96 flex-shrink-0 border-r flex flex-col overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                <div className="flex-1 overflow-y-auto">
+                  <EmailList
+                    emails={emails}
+                    isLoading={isLoading}
+                    onEmailSelect={(email) => setSelectedEmail(email)}
+                  />
+                </div>
+              </div>
+
+              {/* Right panel: detail */}
+              <div className="flex-1 overflow-hidden">
+                {selectedEmail ? (
+                  <div className="h-full animate-slide-right">
+                    <EmailDetail
+                      emailId={selectedEmail.id}
+                      onClose={() => setSelectedEmail(null)}
+                    />
+                  </div>
+                ) : (
+                  <EmptyDetail />
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>
