@@ -31,7 +31,7 @@ export const InboxPage: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [activeView, setActiveView] = useState<ViewMode>('ALL');
 
-  const { activeCategory, setActiveCategory, selectedEmail, setSelectedEmail } = useEmailStore();
+  const { setActiveCategory, selectedEmail, setSelectedEmail } = useEmailStore();
   const { emails, isLoading, categoryCounts } = useEmails();
 
   useEffect(() => {

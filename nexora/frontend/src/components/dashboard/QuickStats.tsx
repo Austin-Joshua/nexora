@@ -10,7 +10,7 @@ interface QuickStatsProps {
 
 function AnimatedNumber({ value }: { value: number }) {
   const [displayed, setDisplayed] = useState(0);
-  const ref = useRef<NodeJS.Timeout | null>(null);
+  const ref = useRef<any | null>(null);
 
   useEffect(() => {
     if (value === 0) { setDisplayed(0); return; }

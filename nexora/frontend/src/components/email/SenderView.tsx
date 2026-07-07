@@ -4,8 +4,7 @@ import { emailApi, type SenderSummary } from '../../api/emailApi';
 import { EmailList } from './EmailList';
 import { EmailDetail } from './EmailDetail';
 import { useEmailStore } from '../../store/emailStore';
-import { formatDateTime } from '../../utils/formatDate';
-import { Mail, ArrowLeft, TrendingUp, User2, Clock, ChevronRight } from 'lucide-react';
+import { Mail, ArrowLeft, TrendingUp, User2, ChevronRight } from 'lucide-react';
 
 // ─── Colour palette cycling for sender avatars ───────────────────────────────
 const AVATAR_GRADIENTS = [
