@@ -6,9 +6,10 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
 export const authApi = {
   getGoogleAuthUrl: (): string => {
+    const cleanBase = API_BASE.endsWith('/api') ? API_BASE.slice(0, -4) : API_BASE;
     const params = new URLSearchParams({
       client_id: GOOGLE_CLIENT_ID,
-      redirect_uri: `${API_BASE}/api/auth/google/callback`,
+      redirect_uri: `${cleanBase}/api/auth/google/callback`,
       response_type: 'code',
       scope: [
         'https://www.googleapis.com/auth/gmail.readonly',
