@@ -35,4 +35,8 @@ public class ClaudeConfig {
         headers.set("anthropic-version", "2023-06-01");
         return headers;
     }
+
+    public boolean isConfigured() {
+        return apiKey != null && !apiKey.isEmpty() && !apiKey.contains("mock") && !apiKey.contains("your_");
+    }
 }

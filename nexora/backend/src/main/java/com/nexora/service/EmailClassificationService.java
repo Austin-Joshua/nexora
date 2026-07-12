@@ -3,6 +3,7 @@ package com.nexora.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nexora.config.ClaudeConfig;
+import com.nexora.config.GeminiConfig;
 import com.nexora.model.Email;
 import com.nexora.model.Email.EmailCategory;
 import com.nexora.model.Email.Priority;
@@ -28,6 +29,7 @@ import java.util.*;
 public class EmailClassificationService {
 
     private final ClaudeConfig claudeConfig;
+    private final GeminiConfig geminiConfig;
     private final EmailRepository emailRepository;
     private final EmailActionRepository actionRepository;
     private final ObjectMapper objectMapper;
@@ -49,7 +51,18 @@ public class EmailClassificationService {
                 String systemPrompt = buildSystemPrompt(user);
                 String userMessage  = buildUserMessage(email, body);
 
-                String rawResponse = callClaude(systemPrompt, userMessage);
+                String rawResponse = null;
+                if (claudeConfig.isConfigured()) {
+                    log.info("Classifying email {} using Claude AI...", emailId);
+                    rawResponse = callClaude(systemPrompt, userMessage);
+                } else if (geminiConfig.isConfigured()) {
+                    log.info("Classifying email {} using Google Gemini API...", emailId);
+                    rawResponse = callGemini(systemPrompt, userMessage);
+                } else {
+                    log.info("No AI keys configured — running local high-fidelity fallback parser for email {}...", emailId);
+                    rawResponse = getLocalFallbackResponse(email);
+                }
+
                 if (rawResponse == null) return;
 
                 JsonNode result = parseJson(rawResponse);
@@ -157,6 +170,119 @@ Body:
             log.error("Claude API call failed: {}", e.getMessage());
         }
         return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public String callGemini(String systemPrompt, String userMessage) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = geminiConfig.getApiUrl() + "?key=" + geminiConfig.getApiKey();
+
+            Map<String, Object> requestBody = new HashMap<>();
+            Map<String, Object> part = new HashMap<>();
+            part.put("text", systemPrompt + "\n\nEmail Content to classify:\n" + userMessage);
+            Map<String, Object> content = new HashMap<>();
+            content.put("parts", List.of(part));
+            requestBody.put("contents", List.of(content));
+
+            Map<String, Object> generationConfig = new HashMap<>();
+            generationConfig.put("responseMimeType", "application/json");
+            requestBody.put("generationConfig", generationConfig);
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+            if (response.getBody() != null && response.getBody().containsKey("candidates")) {
+                List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.getBody().get("candidates");
+                if (!candidates.isEmpty()) {
+                    Map<String, Object> firstCandidate = candidates.get(0);
+                    if (firstCandidate.containsKey("content")) {
+                        Map<String, Object> contentMap = (Map<String, Object>) firstCandidate.get("content");
+                        List<Map<String, Object>> parts = (List<Map<String, Object>>) contentMap.get("parts");
+                        if (!parts.isEmpty()) {
+                            return (String) parts.get(0).get("text");
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Gemini API call failed: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private String getLocalFallbackResponse(Email email) {
+        String subject = (email.getSubject() != null ? email.getSubject() : "").toLowerCase();
+        String body = (email.getBodyFull() != null ? email.getBodyFull() : (email.getBodySnippet() != null ? email.getBodySnippet() : "")).toLowerCase();
+        
+        String category = "UNCATEGORIZED";
+        String priority = "MEDIUM";
+        String summary = "This email was parsed locally. Add a free Google Gemini API key to enable premium AI-powered summaries and descriptions.";
+        String actionType = "REVIEW";
+        String actionDesc = "Review this email for details";
+        String deadline = "null";
+
+        if (subject.contains("assignment") || body.contains("assignment") || subject.contains("submit") || body.contains("submission")) {
+            category = "ASSIGNMENT";
+            priority = "HIGH";
+            actionType = "SUBMIT";
+            actionDesc = "Complete and submit your assignment";
+            deadline = LocalDateTime.now().plusDays(3).toString() + "Z";
+        } else if (subject.contains("hackathon") || body.contains("hackathon") || subject.contains("register") || body.contains("registration")) {
+            category = "HACKATHON";
+            priority = "HIGH";
+            actionType = "REGISTER";
+            actionDesc = "Register for the hackathon event";
+            deadline = LocalDateTime.now().plusDays(5).toString() + "Z";
+        } else if (subject.contains("interview") || subject.contains("placement") || body.contains("placement") || body.contains("job offer")) {
+            category = "PLACEMENT";
+            priority = "HIGH";
+            actionType = "REPLY";
+            actionDesc = "Reply to the placement officer or recruiter";
+            deadline = LocalDateTime.now().plusDays(2).toString() + "Z";
+        } else if (subject.contains("meeting") || body.contains("meeting") || subject.contains("zoom") || body.contains("google meet")) {
+            category = "MEETING";
+            priority = "MEDIUM";
+            actionType = "ATTEND";
+            actionDesc = "Attend the scheduled meeting";
+            deadline = LocalDateTime.now().plusHours(4).toString() + "Z";
+        } else if (subject.contains("internship") || body.contains("internship")) {
+            category = "INTERNSHIP";
+            priority = "MEDIUM";
+            actionType = "REVIEW";
+            actionDesc = "Apply or review the internship opportunity";
+        } else if (subject.contains("alert") || subject.contains("announcement") || body.contains("important announcement")) {
+            category = "ANNOUNCEMENT";
+            priority = "MEDIUM";
+            actionType = "REVIEW";
+            actionDesc = "Review the official announcement";
+        } else if (subject.contains("bill") || subject.contains("invoice") || body.contains("payment due") || subject.contains("fee")) {
+            category = "FINANCE";
+            priority = "HIGH";
+            actionType = "REVIEW";
+            actionDesc = "Verify invoice details and make payment";
+        }
+
+        return """
+        {
+          "category": "%s",
+          "priority": "%s",
+          "summary": "%s",
+          "action_items": [
+            {
+              "action_type": "%s",
+              "description": "%s",
+              "deadline": %s
+            }
+          ],
+          "deadline": %s
+        }
+        """.formatted(category, priority, summary, actionType, actionDesc, 
+                      deadline.equals("null") ? "null" : "\"" + deadline + "\"",
+                      deadline.equals("null") ? "null" : "\"" + deadline + "\"");
     }
 
     private JsonNode parseJson(String rawResponse) {
