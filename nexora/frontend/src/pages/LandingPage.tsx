@@ -143,24 +143,25 @@ export const LandingPage: React.FC = () => {
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-red-300 mb-1">
-              Google Sign-In Blocked — Account Not Authorized
+              {authError === 'access_denied'
+                ? 'Google Sign-In Cancelled'
+                : authError === 'redirect_uri_mismatch'
+                ? 'OAuth Configuration Error'
+                : 'Google Sign-In Failed'}
             </p>
             <p className="text-xs text-red-400/80 leading-relaxed mb-2">
-              Your Google account is not listed as a Test User in the Google Cloud Console.
-              This happens when the OAuth app is in <span className="font-semibold text-red-300">"Testing"</span> mode.
+              {authError === 'access_denied'
+                ? 'You cancelled the Google sign-in. Click "Continue with Google" to try again.'
+                : authError === 'redirect_uri_mismatch'
+                ? 'The redirect URI is not authorized in Google Cloud Console. Contact the app administrator.'
+                : `Sign-in was blocked by Google (${authError}). Please try again or use a different account.`}
             </p>
-            <div className="flex flex-wrap gap-2 items-center">
-              <p className="text-xs text-slate-500">To fix: </p>
-              <a
-                href="https://console.cloud.google.com/apis/credentials/consent"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors font-semibold"
-              >
-                Open OAuth Consent Screen →
-              </a>
-              <span className="text-xs text-slate-600">click "Add Users" and add your Gmail address</span>
-            </div>
+            <button
+              onClick={handleGoogleLogin}
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2"
+            >
+              Try Again →
+            </button>
           </div>
           <button
             onClick={dismissError}
@@ -170,6 +171,7 @@ export const LandingPage: React.FC = () => {
           </button>
         </div>
       )}
+
 
       {/* Hero */}
       <section className="relative flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">

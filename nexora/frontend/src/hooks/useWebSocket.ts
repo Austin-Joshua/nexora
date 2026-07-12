@@ -5,7 +5,9 @@ import { useNotificationStore } from '../store/notificationStore';
 import { useAuthStore } from '../store/authStore';
 import type { Notification } from '../types/Notification';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+// Same normalisation as axiosInstance — strip trailing /api so WS connects to the right endpoint
+const RAW_WS_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+const WS_BASE = RAW_WS_BASE.replace(/\/api\/?$/, '').replace(/\/$/, '');
 
 export function useWebSocket() {
   const { user, token } = useAuthStore();
@@ -16,7 +18,7 @@ export function useWebSocket() {
     if (!user || !token) return;
 
     const client = new Client({
-      webSocketFactory: () => new SockJS(`${API_BASE}/ws`),
+      webSocketFactory: () => new SockJS(`${WS_BASE}/ws`),
       connectHeaders: {
         Authorization: `Bearer ${token}`,
       },

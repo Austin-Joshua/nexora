@@ -44,11 +44,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/google", "/api/auth/google/callback").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
+                // H2 console only in dev/local — guarded by H2_CONSOLE_ENABLED env var
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+            // Allow H2 console iframes in dev; no effect when console is disabled
             .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();

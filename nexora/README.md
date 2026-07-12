@@ -85,12 +85,13 @@ npm run dev
 ```env
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_REDIRECT_URI=http://localhost:8080/api/auth/google/callback
+GOOGLE_REDIRECT_URI=https://your-backend-url.onrender.com/api/auth/google/callback
 CLAUDE_API_KEY=your_anthropic_api_key
 JWT_SECRET=your-minimum-32-char-secret-key
 ENCRYPTION_KEY=your16charenckey
-CORS_ALLOWED_ORIGINS=http://localhost:5173
-# Optional: switch to MySQL
+# Comma-separated: add both Vercel URL and any localhost for local dev
+CORS_ALLOWED_ORIGINS=https://your-frontend.vercel.app,http://localhost:5173
+# Optional: switch to MySQL (recommended for production data persistence)
 # DB_URL=jdbc:mysql://localhost:3306/nexora_db
 # DB_USERNAME=root
 # DB_PASSWORD=your_password
@@ -100,7 +101,8 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173
 
 ### `nexora/frontend/.env`
 ```env
-VITE_API_BASE_URL=http://localhost:8080
+# Backend origin — NO trailing slash, NO /api suffix
+VITE_API_BASE_URL=https://nexora-75kw.onrender.com
 VITE_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
