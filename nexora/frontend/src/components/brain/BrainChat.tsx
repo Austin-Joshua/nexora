@@ -98,7 +98,7 @@ export const BrainChat: React.FC = () => {
         {!hasStarted && messages.length === 0 ? (
           <WelcomeState suggestions={suggestions} onSend={handleSend} />
         ) : (
-          <div className="p-5 space-y-4 max-w-3xl mx-auto">
+          <div className="p-5 space-y-4 max-w-5xl mx-auto">
             {messages.map((msg: BrainMessage, i) => (
               <div
                 key={msg.id}
@@ -119,7 +119,9 @@ export const BrainChat: React.FC = () => {
         className="p-4 border-t flex-shrink-0"
         style={{ borderColor: 'rgba(255,255,255,0.06)' }}
       >
-        <BrainInput onSend={handleSend} isLoading={isLoading} />
+        <div className="max-w-5xl mx-auto">
+          <BrainInput onSend={handleSend} isLoading={isLoading} />
+        </div>
       </div>
     </div>
   );

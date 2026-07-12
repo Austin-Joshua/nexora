@@ -43,7 +43,7 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <AppShell title="Settings" subtitle="Manage your Nexora preferences">
-      <div className="max-w-2xl mx-auto p-5 space-y-5">
+      <div className="max-w-5xl mx-auto p-5 space-y-5">
 
         {/* Profile card */}
         <div className="glass rounded-2xl overflow-hidden animate-fade-in">

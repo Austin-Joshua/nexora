@@ -145,9 +145,14 @@ export const InboxPage: React.FC = () => {
           {activeView === 'SENDERS' ? (
             <SenderView />
           ) : (
-            <div className="flex h-full overflow-hidden">
-              {/* Left panel: list */}
-              <div className="w-96 flex-shrink-0 border-r flex flex-col overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+            <div className="flex h-full overflow-hidden relative">
+              {/* Left panel: list (hidden on mobile if an email is selected) */}
+              <div
+                className={`w-full md:w-96 flex-shrink-0 md:border-r flex flex-col overflow-hidden transition-all duration-300 ${
+                  selectedEmail ? 'hidden md:flex' : 'flex'
+                }`}
+                style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+              >
                 <div className="flex-1 overflow-y-auto">
                   <EmailList
                     emails={emails}
@@ -157,10 +162,14 @@ export const InboxPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right panel: detail */}
-              <div className="flex-1 overflow-hidden">
+              {/* Right panel: detail (full screen on mobile if selected) */}
+              <div
+                className={`flex-1 overflow-hidden transition-all duration-300 ${
+                  selectedEmail ? 'flex' : 'hidden md:flex'
+                }`}
+              >
                 {selectedEmail ? (
-                  <div className="h-full animate-slide-right">
+                  <div className="w-full h-full animate-slide-right">
                     <EmailDetail
                       emailId={selectedEmail.id}
                       onClose={() => setSelectedEmail(null)}
