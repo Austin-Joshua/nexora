@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import org.springframework.scheduling.annotation.Async;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,6 +62,7 @@ public class EmailService {
         emailRepository.save(email);
     }
 
+    @Async
     public void triggerSync(Long userId) {
         gmailSyncService.syncInbox(userId);
     }

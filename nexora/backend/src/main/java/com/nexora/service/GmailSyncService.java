@@ -167,7 +167,18 @@ public class GmailSyncService {
                 return gmail.users().messages().get("me", messageId)
                         .setFormat("FULL").execute();
             } catch (GoogleJsonResponseException e) {
-                if (e.getStatusCode() == 429) {
+                if (e.getStatusCode() == 403) {
+                    log.warn("Gmail API rejected FULL format for message {} (likely metadata scope restriction). Retrying in METADATA format...", messageId);
+                    try {
+                        return gmail.users().messages().get("me", messageId)
+                                .setFormat("METADATA")
+                                .setMetadataHeaders(Arrays.asList("Subject", "From", "To", "Date"))
+                                .execute();
+                    } catch (IOException ex) {
+                        log.error("Failed to fetch message details in METADATA format: {}", ex.getMessage());
+                        return null;
+                    }
+                } else if (e.getStatusCode() == 429) {
                     attempt++;
                     long waitMs = (long) Math.pow(2, attempt) * 1000;
                     log.warn("Rate limited — waiting {}ms before retry {}", waitMs, attempt);
@@ -186,20 +197,22 @@ public class GmailSyncService {
 
     private Email parseMessage(Message message, User user) {
         MessagePart payload = message.getPayload();
-        List<MessagePartHeader> headers = payload.getHeaders();
-
+        List<MessagePartHeader> headers = payload != null ? payload.getHeaders() : new java.util.ArrayList<>();
+ 
         String subject    = getHeader(headers, "Subject");
         String from       = getHeader(headers, "From");
-        boolean hasAttach = hasAttachments(payload);
-
+        boolean hasAttach = payload != null && hasAttachments(payload);
+ 
         String[] fromParts   = parseFrom(from);
         String senderName    = fromParts[0];
         String senderEmail   = fromParts[1];
         LocalDateTime received = parseDate(message.getInternalDate());
-
-        String bodyText = extractBody(payload);
+ 
+        String bodyText = payload != null ? extractBody(payload) : "";
         String snippet  = message.getSnippet();
-
+ 
+        boolean isRead = message.getLabelIds() == null || !message.getLabelIds().contains("UNREAD");
+ 
         return Email.builder()
                 .user(user)
                 .gmailMessageId(message.getId())
@@ -207,10 +220,10 @@ public class GmailSyncService {
                 .senderName(senderName)
                 .senderEmail(senderEmail)
                 .subject(subject)
-                .bodySnippet(snippet != null && snippet.length() > 500 ? snippet.substring(0, 500) : snippet)
+                .bodySnippet(snippet != null && snippet.length() > 500 ? snippet.substring(0, 500) : (snippet != null ? snippet : ""))
                 .bodyFull(bodyText)
                 .receivedAt(received)
-                .isRead(!message.getLabelIds().contains("UNREAD"))
+                .isRead(isRead)
                 .hasAttachments(hasAttach)
                 .category(Email.EmailCategory.UNCATEGORIZED)
                 .priority(Email.Priority.MEDIUM)
