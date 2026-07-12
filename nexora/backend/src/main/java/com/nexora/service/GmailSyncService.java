@@ -113,6 +113,7 @@ public class GmailSyncService {
 
         } catch (GeneralSecurityException | IOException e) {
             log.error("Gmail sync failed for user {}: {}", userId, e.getMessage());
+            throw new NexoraException("Gmail sync failed: " + e.getMessage(), 400);
         }
     }
 

@@ -32,6 +32,11 @@ export function useEmails(page = 0, size = 20) {
       queryClient.invalidateQueries({ queryKey: ['emails'] });
       queryClient.invalidateQueries({ queryKey: ['email-categories'] });
     },
+    onError: (error: any) => {
+      const errorMsg = error.response?.data?.message || error.message || "Sync failed. Please check your Google permissions.";
+      console.error("Gmail sync error:", error);
+      alert("Gmail Sync Failed:\n" + errorMsg);
+    }
   });
 
   const markReadMutation = useMutation({

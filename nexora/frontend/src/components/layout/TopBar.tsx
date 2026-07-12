@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, RefreshCw, Search, X, Sun, Moon } from 'lucide-react';
+import { Bell, RefreshCw, Search, X, Sun, Moon, Menu } from 'lucide-react';
 import { useNotificationStore } from '../../store/notificationStore';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { useEmails } from '../../hooks/useEmails';
@@ -8,9 +8,10 @@ import { useEmailStore } from '../../store/emailStore';
 interface TopBarProps {
   title: string;
   subtitle?: string;
+  onMenuToggle?: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
+export const TopBar: React.FC<TopBarProps> = ({ title, subtitle, onMenuToggle }) => {
   const { unreadCount, togglePanel, isPanelOpen } = useNotificationStore();
   const { sync, isSyncing } = useEmails();
   const { setSearchQuery, searchQuery } = useEmailStore();
@@ -42,12 +43,23 @@ export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
         WebkitBackdropFilter: 'blur(20px)',
       }}
     >
-      {/* Left: Title */}
-      <div className="animate-fade-in">
-        <h2 className="text-[15px] font-bold text-white leading-none tracking-tight">{title}</h2>
-        {subtitle && (
-          <p className="text-xs text-slate-500 mt-0.5 font-medium leading-none">{subtitle}</p>
+      {/* Left: Title & Mobile menu button */}
+      <div className="animate-fade-in flex items-center gap-3">
+        {onMenuToggle && (
+          <button
+            onClick={onMenuToggle}
+            className="md:hidden p-2 text-slate-500 hover:text-white rounded-xl transition-all duration-200 hover:bg-white/5"
+            title="Open navigation"
+          >
+            <Menu size={16} />
+          </button>
         )}
+        <div>
+          <h2 className="text-[15px] font-bold text-white leading-none tracking-tight">{title}</h2>
+          {subtitle && (
+            <p className="text-xs text-slate-500 mt-0.5 font-medium leading-none">{subtitle}</p>
+          )}
+        </div>
       </div>
 
       {/* Right: Actions */}
