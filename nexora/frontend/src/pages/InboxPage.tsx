@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { EmailList } from '../components/email/EmailList';
 import { EmailDetail } from '../components/email/EmailDetail';
@@ -27,6 +27,7 @@ const CATEGORIES: Array<{ key: ViewMode; label: string; emoji: string }> = [
 
 export const InboxPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const urlEmailId = searchParams.get('emailId');
   const [showFilters, setShowFilters] = useState(false);
   const [activeView, setActiveView] = useState<ViewMode>('ALL');
@@ -40,6 +41,7 @@ export const InboxPage: React.FC = () => {
       if (found) setSelectedEmail(found);
     }
   }, [urlEmailId, emails]);
+
 
   const handleTabClick = (key: ViewMode) => {
     setActiveView(key);
@@ -165,14 +167,17 @@ export const InboxPage: React.FC = () => {
               {/* Right panel: detail (full screen on mobile if selected) */}
               <div
                 className={`flex-1 overflow-hidden transition-all duration-300 ${
-                  selectedEmail ? 'flex' : 'hidden md:flex'
+                  selectedEmail || urlEmailId ? 'flex' : 'hidden md:flex'
                 }`}
               >
-                {selectedEmail ? (
+                {selectedEmail || urlEmailId ? (
                   <div className="w-full h-full animate-slide-right">
                     <EmailDetail
-                      emailId={selectedEmail.id}
-                      onClose={() => setSelectedEmail(null)}
+                      emailId={selectedEmail ? selectedEmail.id : parseInt(urlEmailId!)}
+                      onClose={() => {
+                        setSelectedEmail(null);
+                        navigate('/inbox', { replace: true });
+                      }}
                     />
                   </div>
                 ) : (
@@ -180,6 +185,7 @@ export const InboxPage: React.FC = () => {
                 )}
               </div>
             </div>
+
           )}
         </div>
       </div>

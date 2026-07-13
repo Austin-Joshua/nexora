@@ -36,20 +36,27 @@ public class GmailSyncService {
     private final TokenEncryptor tokenEncryptor;
     private final EmailClassificationService classificationService;
 
+    private final Set<Long> activeSyncs = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     private static final int MAX_RESULTS = 50;
     private static final int MAX_RETRIES = 3;
     private static final Pattern HTML_TAGS = Pattern.compile("<[^>]+>");
 
     public void syncInbox(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NexoraException("User not found", 404));
-
-        if (user.getGmailAccessToken() == null) {
-            log.warn("User {} has no Gmail access token — skipping sync", userId);
+        if (!activeSyncs.add(userId)) {
+            log.info("Gmail sync already in progress for user {} — skipping concurrent request", userId);
             return;
         }
 
         try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new NexoraException("User not found", 404));
+
+            if (user.getGmailAccessToken() == null) {
+                log.warn("User {} has no Gmail access token — skipping sync", userId);
+                return;
+            }
+
             LocalDateTime now = LocalDateTime.now();
             if (user.getTokenExpiry() == null || user.getTokenExpiry().isBefore(now.plusMinutes(5))) {
                 log.info("Access token for user {} is expired or close to expiry — refreshing...", userId);
@@ -90,19 +97,34 @@ public class GmailSyncService {
                 return;
             }
 
+            // De-duplicate messages by ID in case Google or concurrent threads returned duplicates
+            List<Message> uniqueMessages = new ArrayList<>();
+            Set<String> seenIds = new HashSet<>();
+            for (Message m : allMessages) {
+                if (m.getId() != null && seenIds.add(m.getId())) {
+                    uniqueMessages.add(m);
+                }
+            }
+
             int newCount = 0;
-            for (Message msg : allMessages) {
-                if (emailRepository.existsByGmailMessageId(msg.getId())) continue;
+            for (Message msg : uniqueMessages) {
+                try {
+                    if (emailRepository.existsByGmailMessageId(msg.getId())) continue;
 
-                Message fullMessage = fetchWithRetry(gmail, msg.getId());
-                if (fullMessage == null) continue;
+                    Message fullMessage = fetchWithRetry(gmail, msg.getId());
+                    if (fullMessage == null) continue;
 
-                Email email = parseMessage(fullMessage, user);
-                Email saved = emailRepository.save(email);
-                newCount++;
+                    Email email = parseMessage(fullMessage, user);
+                    Email saved = emailRepository.save(email);
+                    newCount++;
 
-                // Async AI classification
-                classificationService.classifyEmail(saved.getId(), user);
+                    // Async AI classification
+                    classificationService.classifyEmail(saved.getId(), user);
+                } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                    log.warn("Constraint violation saving message {}, skipping: {}", msg.getId(), e.getMessage());
+                } catch (Exception e) {
+                    log.error("Failed to sync message {}: {}", msg.getId(), e.getMessage());
+                }
             }
 
             // Update last sync time
@@ -114,8 +136,11 @@ public class GmailSyncService {
         } catch (GeneralSecurityException | IOException e) {
             log.error("Gmail sync failed for user {}: {}", userId, e.getMessage());
             throw new NexoraException("Gmail sync failed: " + e.getMessage(), 400);
+        } finally {
+            activeSyncs.remove(userId);
         }
     }
+
 
     private void refreshUserAccessToken(User user) {
         if (user.getGmailRefreshToken() == null) {

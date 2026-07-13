@@ -39,9 +39,41 @@ export const EmailCard: React.FC<EmailCardProps> = ({ email, onClick, isSelected
   };
 
   const actionItems = (() => {
-    try { return email.aiActionItems ? JSON.parse(email.aiActionItems) : []; }
-    catch { return []; }
+    if (email.actions && Array.isArray(email.actions)) {
+      return email.actions.map((a: any) => ({
+        description: a.actionDescription || a.description,
+        deadline: a.deadline,
+        action_type: a.actionType || a.action_type,
+      }));
+    }
+    try {
+      if (email.aiActionItems) {
+        const parsed = typeof email.aiActionItems === 'string' 
+          ? JSON.parse(email.aiActionItems) 
+          : email.aiActionItems;
+        if (Array.isArray(parsed)) {
+          return parsed.map((a: any) => ({
+            description: a.description || a.actionDescription,
+            deadline: a.deadline,
+            action_type: a.action_type || a.actionType,
+          }));
+        } else if (parsed && typeof parsed === 'object') {
+          const arr = parsed.action_items || parsed.actions || [];
+          if (Array.isArray(arr)) {
+            return arr.map((a: any) => ({
+              description: a.description || a.actionDescription,
+              deadline: a.deadline,
+              action_type: a.action_type || a.actionType,
+            }));
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Failed to parse aiActionItems:", err);
+    }
+    return [];
   })();
+
 
   const senderInitial = (email.senderName || email.senderEmail)[0]?.toUpperCase() ?? '?';
   const senderColor = getSenderColor(email.senderName || email.senderEmail);

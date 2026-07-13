@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckSquare, Clock, CheckCircle2 } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatDate';
+import { useNavigate } from 'react-router-dom';
 
 interface ActionItem {
   id: number;
@@ -10,6 +11,7 @@ interface ActionItem {
   isCompleted: boolean;
   emailSubject?: string;
   senderName?: string;
+  emailId?: number;
 }
 
 interface ActionItemListProps {
@@ -28,84 +30,96 @@ const TYPE_CONFIG: Record<string, { color: string; bg: string; border: string }>
 
 const DEFAULT_CFG = TYPE_CONFIG.OTHER;
 
-export const ActionItemList: React.FC<ActionItemListProps> = ({ actions }) => (
-  <div
-    className="rounded-2xl overflow-hidden"
-    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-  >
-    {/* Header */}
+export const ActionItemList: React.FC<ActionItemListProps> = ({ actions }) => {
+  const navigate = useNavigate();
+
+  return (
     <div
-      className="flex items-center gap-2.5 px-4 py-3.5 border-b"
-      style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+      className="rounded-2xl overflow-hidden"
+      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
     >
+      {/* Header */}
       <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.2)' }}
+        className="flex items-center gap-2.5 px-4 py-3.5 border-b"
+        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
       >
-        <CheckSquare size={13} className="text-amber-400" />
-      </div>
-      <h3 className="font-bold text-white text-sm flex-1">Pending Actions</h3>
-      {actions.length > 0 && (
-        <span
-          className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-          style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.25)', color: '#fde047' }}
+        <div
+          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.2)' }}
         >
-          {actions.length}
-        </span>
-      )}
-    </div>
-
-    {/* List */}
-    <div className="max-h-72 overflow-y-auto">
-      {actions.length === 0 ? (
-        <div className="p-8 text-center">
-          <CheckCircle2 size={28} className="text-emerald-500 mx-auto mb-2.5 opacity-60" />
-          <p className="text-slate-500 text-sm font-semibold">All done!</p>
-          <p className="text-slate-600 text-xs mt-1">No pending actions right now</p>
+          <CheckSquare size={13} className="text-amber-400" />
         </div>
-      ) : (
-        actions.map((action, i) => {
-          const cfg = TYPE_CONFIG[action.actionType] ?? DEFAULT_CFG;
-          return (
-            <div
-              key={action.id}
-              className={`px-4 py-3.5 border-b transition-all duration-200 hover:bg-white/[0.025] animate-fade-in delay-${(i + 1) * 50}`}
-              style={{ borderColor: 'rgba(255,255,255,0.04)' }}
-            >
-              <div className="flex items-start gap-3">
-                {/* Dot indicator */}
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-                  style={{ background: cfg.color, boxShadow: `0 0 6px ${cfg.color}60` }}
-                />
+        <h3 className="font-bold text-white text-sm flex-1">Pending Actions</h3>
+        {actions.length > 0 && (
+          <span
+            className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+            style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.25)', color: '#fde047' }}
+          >
+            {actions.length}
+          </span>
+        )}
+      </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 leading-snug font-medium">
-                    {action.actionDescription}
-                  </p>
-                  {action.emailSubject && (
-                    <p className="text-[10px] text-slate-600 truncate mt-0.5 leading-tight">
-                      {action.emailSubject}
+      {/* List */}
+      <div className="max-h-72 overflow-y-auto">
+        {actions.length === 0 ? (
+          <div className="p-8 text-center">
+            <CheckCircle2 size={28} className="text-emerald-500 mx-auto mb-2.5 opacity-60" />
+            <p className="text-slate-500 text-sm font-semibold">All done!</p>
+            <p className="text-slate-600 text-xs mt-1">No pending actions right now</p>
+          </div>
+        ) : (
+          actions.map((action, i) => {
+            const cfg = TYPE_CONFIG[action.actionType] ?? DEFAULT_CFG;
+            const isClickable = !!action.emailId;
+            return (
+              <div
+                key={action.id}
+                onClick={() => {
+                  if (isClickable) {
+                    navigate(`/inbox?emailId=${action.emailId}`);
+                  }
+                }}
+                className={`px-4 py-3.5 border-b transition-all duration-200 hover:bg-white/[0.025] animate-fade-in delay-${(i + 1) * 50} ${
+                  isClickable ? 'cursor-pointer hover:translate-x-0.5' : ''
+                }`}
+                style={{ borderColor: 'rgba(255,255,255,0.04)' }}
+              >
+                <div className="flex items-start gap-3">
+                  {/* Dot indicator */}
+                  <div
+                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                    style={{ background: cfg.color, boxShadow: `0 0 6px ${cfg.color}60` }}
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-200 leading-snug font-medium">
+                      {action.actionDescription}
                     </p>
-                  )}
-                  {action.deadline && (
-                    <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1 font-semibold">
-                      <Clock size={9} /> {formatDateTime(action.deadline)}
-                    </p>
-                  )}
+                    {action.emailSubject && (
+                      <p className="text-[10px] text-slate-600 truncate mt-0.5 leading-tight">
+                        {action.emailSubject}
+                      </p>
+                    )}
+                    {action.deadline && (
+                      <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1 font-semibold">
+                        <Clock size={9} /> {formatDateTime(action.deadline)}
+                      </p>
+                    )}
+                  </div>
+
+                  <span
+                    className="flex-shrink-0 px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wide"
+                    style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
+                  >
+                    {action.actionType}
+                  </span>
                 </div>
-
-                <span
-                  className="flex-shrink-0 px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wide"
-                  style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
-                >
-                  {action.actionType}
-                </span>
               </div>
-            </div>
-          );
-        })
-      )}
+            );
+          })
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
