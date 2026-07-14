@@ -47,9 +47,9 @@ public class AuthService {
     /**
      * Exchange Google OAuth code for tokens, upsert user, return JWT.
      */
-    public AuthResponse handleGoogleCallback(String code) {
+    public AuthResponse handleGoogleCallback(String code, String dynamicRedirectUri) {
         // 1. Exchange code for tokens
-        JsonNode tokenResponse = exchangeCodeForTokens(code);
+        JsonNode tokenResponse = exchangeCodeForTokens(code, dynamicRedirectUri);
 
         String accessToken  = tokenResponse.get("access_token").asText();
         String refreshToken = tokenResponse.has("refresh_token")
@@ -140,7 +140,7 @@ public class AuthService {
 
     // ─── Private helpers ─────────────────────────────────────────────────────
 
-    private JsonNode exchangeCodeForTokens(String code) {
+    private JsonNode exchangeCodeForTokens(String code, String dynamicRedirectUri) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -149,13 +149,19 @@ public class AuthService {
         body.add("code", code);
         body.add("client_id", googleClientId);
         body.add("client_secret", googleClientSecret);
-        body.add("redirect_uri", redirectUri);
+        
+        String effectiveRedirectUri = (dynamicRedirectUri != null && !dynamicRedirectUri.isEmpty()) 
+                ? dynamicRedirectUri : redirectUri;
+        body.add("redirect_uri", effectiveRedirectUri);
         body.add("grant_type", "authorization_code");
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
         try {
             ResponseEntity<String> response = restTemplate.postForEntity(TOKEN_ENDPOINT, request, String.class);
             return objectMapper.readTree(response.getBody());
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            log.error("Failed to exchange code for tokens. Status: {}, Response: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new NexoraException("Failed to authenticate with Google", 401);
         } catch (Exception e) {
             log.error("Failed to exchange code for tokens: {}", e.getMessage());
             throw new NexoraException("Failed to authenticate with Google", 401);

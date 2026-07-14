@@ -29,8 +29,34 @@ public class AuthController {
      * We exchange the code, register/load the user, and redirect back to the React app callback page.
      */
     @GetMapping("/google/callback")
-    public void googleCallback(@RequestParam String code, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
-        AuthResponse authResponse = authService.handleGoogleCallback(code);
+    public void googleCallback(
+            @RequestParam String code,
+            jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        
+        // Dynamically detect scheme, taking reverse proxies into account
+        String scheme = request.getHeader("X-Forwarded-Proto");
+        if (scheme != null && !scheme.isEmpty()) {
+            scheme = scheme.split(",")[0].trim();
+        } else {
+            scheme = request.getScheme();
+        }
+
+        // Dynamically detect host, taking reverse proxies into account
+        String host = request.getHeader("X-Forwarded-Host");
+        if (host != null && !host.isEmpty()) {
+            host = host.split(",")[0].trim();
+        } else {
+            host = request.getHeader("Host");
+        }
+        if (host == null || host.isEmpty()) {
+            int port = request.getServerPort();
+            host = request.getServerName() + (port == 80 || port == 443 ? "" : ":" + port);
+        }
+
+        String dynamicRedirectUri = scheme + "://" + host + request.getRequestURI();
+
+        AuthResponse authResponse = authService.handleGoogleCallback(code, dynamicRedirectUri);
         String frontendBase = corsAllowedOrigins.split(",")[0].trim();
 
         String redirectUrl = org.springframework.web.util.UriComponentsBuilder.fromHttpUrl(frontendBase + "/auth/callback")
