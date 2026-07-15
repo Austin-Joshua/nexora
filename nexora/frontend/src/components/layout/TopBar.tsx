@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, RefreshCw, Search, X, Sun, Moon, Menu } from 'lucide-react';
+import { Bell, RefreshCw, Search, X, Sun, Moon, Menu, Clock } from 'lucide-react';
 import { useNotificationStore } from '../../store/notificationStore';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { useEmails } from '../../hooks/useEmails';
@@ -11,11 +11,38 @@ interface TopBarProps {
   onMenuToggle?: () => void;
 }
 
+function useRelativeTime(date: Date | null) {
+  const [label, setLabel] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!date) { setLabel(null); return; }
+
+    const update = () => {
+      const diffMs = Date.now() - date.getTime();
+      const mins = Math.floor(diffMs / 60000);
+      if (mins < 1) setLabel('just now');
+      else if (mins === 1) setLabel('1 min ago');
+      else if (mins < 60) setLabel(`${mins} mins ago`);
+      else {
+        const hrs = Math.floor(mins / 60);
+        setLabel(hrs === 1 ? '1 hr ago' : `${hrs} hrs ago`);
+      }
+    };
+
+    update();
+    const id = setInterval(update, 30_000);
+    return () => clearInterval(id);
+  }, [date]);
+
+  return label;
+}
+
 export const TopBar: React.FC<TopBarProps> = ({ title, subtitle, onMenuToggle }) => {
   const { unreadCount, togglePanel, isPanelOpen } = useNotificationStore();
   const { sync, isSyncing } = useEmails();
-  const { setSearchQuery, searchQuery } = useEmailStore();
+  const { setSearchQuery, searchQuery, lastSyncedAt } = useEmailStore();
   const [searchFocused, setSearchFocused] = useState(false);
+  const lastSyncLabel = useRelativeTime(lastSyncedAt);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
@@ -60,6 +87,16 @@ export const TopBar: React.FC<TopBarProps> = ({ title, subtitle, onMenuToggle })
             <p className="text-xs text-slate-500 mt-0.5 font-medium leading-none">{subtitle}</p>
           )}
         </div>
+        {/* Last synced indicator */}
+        {lastSyncLabel && (
+          <div
+            className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-medium"
+            style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', color: '#6ee7b7' }}
+          >
+            <Clock size={9} />
+            Synced {lastSyncLabel}
+          </div>
+        )}
       </div>
 
       {/* Right: Actions */}

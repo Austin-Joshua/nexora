@@ -3,7 +3,7 @@ import { emailApi } from '../api/emailApi';
 import { useEmailStore } from '../store/emailStore';
 
 export function useEmails(page = 0, size = 20) {
-  const { activeCategory, activePriority, searchQuery } = useEmailStore();
+  const { activeCategory, activePriority, searchQuery, setLastSyncedAt } = useEmailStore();
   const queryClient = useQueryClient();
 
   const params = {
@@ -31,6 +31,9 @@ export function useEmails(page = 0, size = 20) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emails'] });
       queryClient.invalidateQueries({ queryKey: ['email-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['analytics-emails'] });
+      setLastSyncedAt(new Date());
     },
     onError: (error: any) => {
       const errorMsg = error.response?.data?.message || error.message || "Sync failed. Please check your Google permissions.";

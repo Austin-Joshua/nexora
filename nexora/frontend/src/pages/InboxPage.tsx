@@ -7,7 +7,7 @@ import { SenderView } from '../components/email/SenderView';
 import { useEmails } from '../hooks/useEmails';
 import { useEmailStore } from '../store/emailStore';
 import type { EmailCategory } from '../types/Email';
-import { SlidersHorizontal, Users } from 'lucide-react';
+import { SlidersHorizontal, Users, Search, X, Eye, EyeOff } from 'lucide-react';
 
 type ViewMode = EmailCategory | 'ALL' | 'SENDERS';
 
@@ -29,11 +29,23 @@ export const InboxPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const urlEmailId = searchParams.get('emailId');
+  const urlCategory = searchParams.get('category') as ViewMode | null;
   const [showFilters, setShowFilters] = useState(false);
-  const [activeView, setActiveView] = useState<ViewMode>('ALL');
+  const [activeView, setActiveView] = useState<ViewMode>(urlCategory ?? 'ALL');
+  const [inboxSearch, setInboxSearch] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [unreadOnly, setUnreadOnly] = useState(false);
 
   const { setActiveCategory, selectedEmail, setSelectedEmail } = useEmailStore();
   const { emails, isLoading, categoryCounts } = useEmails();
+
+  // Sync URL category param into active view on mount
+  useEffect(() => {
+    if (urlCategory && CATEGORIES.some(c => c.key === urlCategory)) {
+      setActiveView(urlCategory);
+      setActiveCategory(urlCategory as EmailCategory | 'ALL');
+    }
+  }, [urlCategory]);
 
   useEffect(() => {
     if (urlEmailId && emails.length > 0) {
@@ -42,6 +54,16 @@ export const InboxPage: React.FC = () => {
     }
   }, [urlEmailId, emails]);
 
+  // Filter displayed emails by local search and unread toggle
+  const displayedEmails = emails.filter((email) => {
+    const matchesSearch = !inboxSearch || (
+      email.subject?.toLowerCase().includes(inboxSearch.toLowerCase()) ||
+      email.senderName?.toLowerCase().includes(inboxSearch.toLowerCase()) ||
+      email.senderEmail?.toLowerCase().includes(inboxSearch.toLowerCase())
+    );
+    const matchesUnread = !unreadOnly || !email.isRead;
+    return matchesSearch && matchesUnread;
+  });
 
   const handleTabClick = (key: ViewMode) => {
     setActiveView(key);
@@ -125,15 +147,58 @@ export const InboxPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Filter toggle (only shown for email list views) */}
+          {/* Toolbar: count, search, filters (only shown for email list views) */}
           {activeView !== 'SENDERS' && (
-            <div className="px-3 pb-2 flex items-center justify-between">
-              <span className="text-[10px] text-slate-600 font-semibold">
-                {emails.length} email{emails.length !== 1 ? 's' : ''}
+            <div className="px-3 pb-2 flex items-center gap-2">
+              <span className="text-[10px] text-slate-600 font-semibold flex-shrink-0">
+                {displayedEmails.length} email{displayedEmails.length !== 1 ? 's' : ''}
               </span>
+
+              {/* Inline search */}
+              <div className={`relative flex-1 max-w-xs transition-all duration-200 ${searchFocused ? 'flex-none w-56' : 'w-44'}`}>
+                <Search
+                  size={11}
+                  className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition-colors ${searchFocused ? 'text-indigo-400' : 'text-slate-600'}`}
+                />
+                <input
+                  id="inbox-search"
+                  type="text"
+                  placeholder="Search..."
+                  value={inboxSearch}
+                  onChange={(e) => setInboxSearch(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                  className="w-full pl-7 pr-6 py-1 text-[11px] rounded-lg text-slate-300 placeholder-slate-600 focus:outline-none transition-all duration-200"
+                  style={{
+                    background: searchFocused ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.04)',
+                    border: searchFocused ? '1px solid rgba(99,102,241,0.35)' : '1px solid rgba(255,255,255,0.07)',
+                  }}
+                />
+                {inboxSearch && (
+                  <button
+                    onClick={() => setInboxSearch('')}
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300"
+                  >
+                    <X size={10} />
+                  </button>
+                )}
+              </div>
+
+              {/* Unread only toggle */}
+              <button
+                id="unread-only-toggle"
+                onClick={() => setUnreadOnly(u => !u)}
+                className="flex items-center gap-1 text-[10px] font-semibold transition-colors duration-200 flex-shrink-0"
+                style={{ color: unreadOnly ? '#a5b4fc' : 'rgba(100,116,139,0.9)' }}
+                title={unreadOnly ? 'Show all emails' : 'Show unread only'}
+              >
+                {unreadOnly ? <EyeOff size={10} /> : <Eye size={10} />}
+                {unreadOnly ? 'Unread' : 'All'}
+              </button>
+
               <button
                 onClick={() => setShowFilters(f => !f)}
-                className="flex items-center gap-1 text-[10px] text-slate-600 hover:text-slate-300 transition-colors duration-200 font-semibold"
+                className="flex items-center gap-1 text-[10px] text-slate-600 hover:text-slate-300 transition-colors duration-200 font-semibold flex-shrink-0"
               >
                 <SlidersHorizontal size={10} />
                 {showFilters ? 'Hide' : 'Filter'}
@@ -157,7 +222,7 @@ export const InboxPage: React.FC = () => {
               >
                 <div className="flex-1 overflow-y-auto">
                   <EmailList
-                    emails={emails}
+                    emails={displayedEmails}
                     isLoading={isLoading}
                     onEmailSelect={(email) => setSelectedEmail(email)}
                   />

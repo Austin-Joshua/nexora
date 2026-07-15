@@ -27,10 +27,17 @@ const SUGGESTED_QUERIES: Record<string, string[]> = {
 };
 
 export const BrainChat: React.FC = () => {
-  const { messages, isLoading, sendQuery, clearMessages } = useBrain();
+  const { messages, isLoading, historyLoading, sendQuery, clearMessages } = useBrain();
   const { user } = useAuthStore();
   const bottomRef = React.useRef<HTMLDivElement>(null);
   const [hasStarted, setHasStarted] = React.useState(false);
+
+  // If history loaded some messages, show them immediately
+  React.useEffect(() => {
+    if (!historyLoading && messages.length > 0) {
+      setHasStarted(true);
+    }
+  }, [historyLoading, messages.length]);
 
   React.useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -45,6 +52,7 @@ export const BrainChat: React.FC = () => {
     clearMessages();
     setHasStarted(false);
   };
+
 
   const suggestions = SUGGESTED_QUERIES[user?.userRole ?? 'DEFAULT'] ?? SUGGESTED_QUERIES.DEFAULT;
 

@@ -1,11 +1,50 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { brainApi } from '../api/brainApi';
 import type { BrainMessage } from '../types/Brain';
 
 export function useBrain() {
   const [messages, setMessages] = useState<BrainMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const historyLoaded = useRef(false);
+
+  // Load conversation history on first mount
+  useEffect(() => {
+    if (historyLoaded.current) return;
+    historyLoaded.current = true;
+
+    const loadHistory = async () => {
+      try {
+        const history = await brainApi.getHistory();
+        if (history && history.length > 0) {
+          // Convert backend conversation records → BrainMessage pairs
+          const historicMessages: BrainMessage[] = [];
+          history.slice().reverse().forEach((conv) => {
+            historicMessages.push({
+              id: `h-user-${conv.id}`,
+              type: 'user',
+              content: conv.userQuery,
+              timestamp: conv.createdAt ? new Date(conv.createdAt) : new Date(),
+            });
+            historicMessages.push({
+              id: `h-ai-${conv.id}`,
+              type: 'assistant',
+              content: conv.aiResponse,
+              timestamp: conv.createdAt ? new Date(conv.createdAt) : new Date(),
+            });
+          });
+          setMessages(historicMessages);
+        }
+      } catch {
+        // history load failing is non-fatal – start fresh
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, []);
 
   const sendQuery = useCallback(async (query: string) => {
     const userMessage: BrainMessage = {
@@ -47,5 +86,5 @@ export function useBrain() {
 
   const clearMessages = useCallback(() => setMessages([]), []);
 
-  return { messages, isLoading, error, sendQuery, clearMessages };
+  return { messages, isLoading, historyLoading, error, sendQuery, clearMessages };
 }

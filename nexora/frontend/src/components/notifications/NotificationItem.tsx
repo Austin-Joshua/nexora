@@ -1,9 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Notification } from '../../types/Notification';
 import { notificationApi } from '../../api/notificationApi';
 import { useNotificationStore } from '../../store/notificationStore';
 import { formatRelative } from '../../utils/formatDate';
-import { Bell, Clock, Mail, CheckCircle, Check } from 'lucide-react';
+import { Bell, Clock, Mail, CheckCircle, Check, ArrowRight } from 'lucide-react';
 
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string; border: string }> = {
   DEADLINE: {
@@ -38,6 +39,7 @@ interface Props { notification: Notification; }
 
 export const NotificationItem: React.FC<Props> = ({ notification }) => {
   const { markRead } = useNotificationStore();
+  const navigate = useNavigate();
   const cfg = TYPE_CONFIG[notification.notificationType] ?? DEFAULT_CONFIG;
 
   const handleMarkRead = async (e: React.MouseEvent) => {
@@ -48,9 +50,25 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
     } catch {}
   };
 
+  const handleCardClick = async () => {
+    // Mark as read silently
+    if (!notification.isRead) {
+      try {
+        await notificationApi.markRead(notification.id);
+        markRead(notification.id);
+      } catch {}
+    }
+    // Navigate to related email if available
+    if (notification.relatedEmailId) {
+      navigate(`/inbox?emailId=${notification.relatedEmailId}`);
+    }
+  };
+
   return (
     <div
-      className="relative p-4 rounded-2xl transition-all duration-200 cursor-pointer group"
+      role={notification.relatedEmailId ? 'button' : 'article'}
+      tabIndex={notification.relatedEmailId ? 0 : undefined}
+      className="relative p-4 rounded-2xl transition-all duration-200 group"
       style={{
         background: notification.isRead
           ? 'rgba(255,255,255,0.02)'
@@ -58,12 +76,17 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
         border: notification.isRead
           ? '1px solid rgba(255,255,255,0.05)'
           : '1px solid rgba(99,102,241,0.15)',
+        cursor: notification.relatedEmailId ? 'pointer' : 'default',
       }}
+      onClick={handleCardClick}
+      onKeyDown={(e) => e.key === 'Enter' && handleCardClick()}
       onMouseEnter={(e) => {
         if (!notification.isRead) (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.07)';
+        else if (notification.relatedEmailId) (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)';
       }}
       onMouseLeave={(e) => {
         if (!notification.isRead) (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.04)';
+        else (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)';
       }}
     >
       {/* Unread indicator */}
@@ -108,6 +131,11 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
           <p className={`text-xs leading-relaxed line-clamp-2 ${notification.isRead ? 'text-slate-600' : 'text-slate-400'}`}>
             {notification.message}
           </p>
+          {notification.relatedEmailId && (
+            <div className="flex items-center gap-1 mt-1.5 text-[10px] font-semibold text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <ArrowRight size={10} /> View email
+            </div>
+          )}
         </div>
       </div>
     </div>

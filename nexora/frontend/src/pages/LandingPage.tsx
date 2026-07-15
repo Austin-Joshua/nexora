@@ -108,13 +108,15 @@ export const LandingPage: React.FC = () => {
           <span className="font-bold text-white text-lg tracking-tight">Nexora</span>
         </div>
         <div className="flex items-center gap-3">
-          <a
-            id="nav-bypass-btn"
-            href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
-            className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2 mr-3"
-          >
-            Bypass Login
-          </a>
+          {import.meta.env.DEV && (
+            <a
+              id="nav-bypass-btn"
+              href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2 mr-3"
+            >
+              Bypass Login
+            </a>
+          )}
           <button
             id="landing-signin-btn"
             onClick={handleGoogleLogin}
@@ -218,16 +220,18 @@ export const LandingPage: React.FC = () => {
           </a>
         </div>
 
-        {/* Developer Bypass Option */}
-        <div className="animate-fade-in delay-300 mb-8">
-          <a
-            id="developer-bypass-btn"
-            href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
-            className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2"
-          >
-            🔧 Developer Bypass (Local Mock Login)
-          </a>
-        </div>
+        {/* Developer Bypass Option — DEV only */}
+        {import.meta.env.DEV && (
+          <div className="animate-fade-in delay-300 mb-8">
+            <a
+              id="developer-bypass-btn"
+              href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
+              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2"
+            >
+              🔧 Developer Bypass (Local Mock Login)
+            </a>
+          </div>
+        )}
 
         {/* Trust signals */}
         <div className="animate-fade-in delay-400 flex flex-wrap items-center justify-center gap-4">

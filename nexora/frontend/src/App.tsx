@@ -9,6 +9,8 @@ import { BrainPage }         from './pages/BrainPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { SettingsPage }      from './pages/SettingsPage';
 import { AuthCallbackPage }  from './pages/AuthCallbackPage';
+import { EmailDetailPage }   from './pages/EmailDetailPage';
+import { AnalyticsPage }     from './pages/AnalyticsPage';
 import { ErrorBoundary }     from './components/common/ErrorBoundary';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -25,9 +27,11 @@ function App() {
         <Route path="/onboarding"      element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
         <Route path="/dashboard"       element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/inbox"           element={<ProtectedRoute><InboxPage /></ProtectedRoute>} />
+        <Route path="/emails/:id"      element={<ProtectedRoute><EmailDetailPage /></ProtectedRoute>} />
         <Route path="/brain"           element={<ProtectedRoute><BrainPage /></ProtectedRoute>} />
         <Route path="/notifications"   element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="/settings"        element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/analytics"       element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
     </ErrorBoundary>

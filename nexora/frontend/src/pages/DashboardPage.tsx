@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from '../api/dashboardApi';
 import { AppShell } from '../components/layout/AppShell';
 import { QuickStats } from '../components/dashboard/QuickStats';
@@ -21,6 +22,7 @@ const CATEGORY_DOT_COLORS: Record<string, string> = {
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-summary'],
@@ -62,14 +64,16 @@ export const DashboardPage: React.FC = () => {
                 <div className="glass rounded-2xl p-4">
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(data?.categoryCounts ?? {}).map(([cat, count]) => (
-                      <div
+                      <button
                         key={cat}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium cursor-default transition-all duration-200 hover:scale-105"
+                        onClick={() => navigate(`/inbox?category=${cat}`)}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition-all duration-200 hover:scale-105 hover:brightness-125"
                         style={{
                           background: `${CATEGORY_DOT_COLORS[cat] ?? '#94a3b8'}12`,
                           border: `1px solid ${CATEGORY_DOT_COLORS[cat] ?? '#94a3b8'}25`,
                           color: CATEGORY_DOT_COLORS[cat] ?? '#94a3b8',
                         }}
+                        title={`View ${(CATEGORY_LABELS as Record<string, string>)[cat] ?? cat} emails`}
                       >
                         <span
                           className="w-1.5 h-1.5 rounded-full flex-shrink-0"
@@ -77,7 +81,7 @@ export const DashboardPage: React.FC = () => {
                         />
                         {(CATEGORY_LABELS as Record<string, string>)[cat] ?? cat}
                         <strong className="text-white/90">{count as number}</strong>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>

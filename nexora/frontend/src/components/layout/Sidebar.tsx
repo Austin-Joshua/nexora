@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Inbox, Brain, Bell, Settings, LogOut, Zap, ChevronRight,
+  LayoutDashboard, Inbox, Brain, Bell, Settings, LogOut, Zap, ChevronRight, BarChart2,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotificationStore } from '../../store/notificationStore';
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/dashboard',     icon: LayoutDashboard, label: 'Dashboard',      color: 'text-indigo-400' },
   { to: '/inbox',         icon: Inbox,           label: 'Inbox',           color: 'text-blue-400' },
   { to: '/brain',         icon: Brain,           label: 'Nexora Brain',    color: 'text-violet-400' },
+  { to: '/analytics',    icon: BarChart2,        label: 'Analytics',       color: 'text-teal-400' },
   { to: '/notifications', icon: Bell,            label: 'Notifications',   color: 'text-amber-400' },
   { to: '/settings',      icon: Settings,        label: 'Settings',        color: 'text-slate-400' },
 ];
