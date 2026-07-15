@@ -41,7 +41,7 @@ public class SecurityConfig {
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/google", "/api/auth/google/callback").permitAll()
+                .requestMatchers("/api/auth/google", "/api/auth/google/callback", "/api/auth/bypass").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 // H2 console only in dev/local — guarded by H2_CONSOLE_ENABLED env var

@@ -193,6 +193,7 @@ Body:
             headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            @SuppressWarnings("rawtypes")
             ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
             if (response.getBody() != null && response.getBody().containsKey("candidates")) {
@@ -212,6 +213,19 @@ Body:
             log.error("Gemini API call failed: {}", e.getMessage());
         }
         return null;
+    }
+
+    public String generateBrainAnswer(String systemPrompt, String userQuery) {
+        if (claudeConfig.isConfigured()) {
+            log.info("Querying Nexora Brain using Claude...");
+            return callClaude(systemPrompt, userQuery);
+        } else if (geminiConfig.isConfigured()) {
+            log.info("Querying Nexora Brain using Gemini...");
+            return callGemini(systemPrompt, userQuery);
+        } else {
+            log.info("No AI keys configured for Nexora Brain. Running local keyword-based parser...");
+            return null;
+        }
     }
 
     private String getLocalFallbackResponse(Email email) {

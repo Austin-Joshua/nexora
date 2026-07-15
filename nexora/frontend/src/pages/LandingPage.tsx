@@ -108,6 +108,13 @@ export const LandingPage: React.FC = () => {
           <span className="font-bold text-white text-lg tracking-tight">Nexora</span>
         </div>
         <div className="flex items-center gap-3">
+          <a
+            id="nav-bypass-btn"
+            href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
+            className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2 mr-3"
+          >
+            Bypass Login
+          </a>
           <button
             id="landing-signin-btn"
             onClick={handleGoogleLogin}
@@ -192,7 +199,7 @@ export const LandingPage: React.FC = () => {
           <span className="text-slate-300 font-medium"> Never miss a deadline again.</span>
         </p>
 
-        <div className="animate-fade-in delay-300 flex flex-col sm:flex-row items-center gap-4 justify-center mb-8">
+        <div className="animate-fade-in delay-300 flex flex-col sm:flex-row items-center gap-4 justify-center mb-4">
           <button
             id="hero-cta-btn"
             onClick={handleGoogleLogin}
@@ -208,6 +215,17 @@ export const LandingPage: React.FC = () => {
           </button>
           <a href="#features" className="btn-ghost flex items-center gap-2 text-base px-6 py-4">
             See how it works <ArrowRight size={16} />
+          </a>
+        </div>
+
+        {/* Developer Bypass Option */}
+        <div className="animate-fade-in delay-300 mb-8">
+          <a
+            id="developer-bypass-btn"
+            href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
+            className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2"
+          >
+            🔧 Developer Bypass (Local Mock Login)
           </a>
         </div>
 

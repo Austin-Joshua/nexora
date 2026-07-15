@@ -52,6 +52,13 @@ public class GmailSyncService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new NexoraException("User not found", 404));
 
+            if ("mock-google-id-123456".equals(user.getGoogleId())) {
+                log.info("Developer bypass user sync triggered — skipping Google API sync and using static mock data");
+                user.setLastSyncedAt(LocalDateTime.now());
+                userRepository.save(user);
+                return;
+            }
+
             if (user.getGmailAccessToken() == null) {
                 log.warn("User {} has no Gmail access token — skipping sync", userId);
                 return;

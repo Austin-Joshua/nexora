@@ -81,6 +81,29 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Developer bypass to log in instantly with mock data.
+     */
+    @GetMapping("/bypass")
+    public void developerBypass(
+            jakarta.servlet.http.HttpServletRequest request,
+            jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+        AuthResponse authResponse = authService.handleBypassLogin();
+        String frontendBase = corsAllowedOrigins.split(",")[0].trim();
+
+        String redirectUrl = org.springframework.web.util.UriComponentsBuilder.fromHttpUrl(frontendBase + "/auth/callback")
+                .queryParam("token", authResponse.getToken())
+                .queryParam("onboarding", !authResponse.isOnboardingComplete())
+                .queryParam("userId", authResponse.getUserId())
+                .queryParam("email", authResponse.getEmail())
+                .queryParam("name", authResponse.getName())
+                .queryParam("role", authResponse.getUserRole().name())
+                .queryParam("picture", authResponse.getProfilePictureUrl())
+                .build().toUriString();
+
+        response.sendRedirect(redirectUrl);
+    }
+
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> getCurrentUser(@AuthenticationPrincipal User user) {
         AuthResponse response = authService.updateProfile(user.getId(), user.getUserRole());
