@@ -27,74 +27,125 @@ export const NotificationPanel: React.FC = () => {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40" onClick={togglePanel} />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={togglePanel} />
 
       {/* Panel */}
       <div
-        className="fixed right-4 top-16 w-96 max-h-[80vh] z-50 flex flex-col animate-scale-in origin-top-right"
+        className="animate-scale-in"
         style={{
-          background: 'var(--panel-bg)',
-          backdropFilter: 'blur(24px)',
-          WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '20px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.2), 0 0 0 1px var(--border-color)',
+          position: 'absolute',
+          right: 0,
+          top: 36,
+          width: 320,
+          maxHeight: 400,
+          zIndex: 50,
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'var(--s2)',
+          border: '1px solid var(--border-b)',
+          borderRadius: 8,
+          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
         }}
       >
         {/* Header */}
         <div
-          className="flex items-center justify-between px-4 py-3.5 border-b flex-shrink-0"
-          style={{ borderColor: 'var(--border-color)' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '10px 12px',
+            borderBottom: '1px solid var(--border)',
+            flexShrink: 0,
+          }}
         >
-          <div className="flex items-center gap-2.5">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.2)' }}
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 5,
+                background: 'rgba(240,192,48,0.12)',
+                border: '1px solid rgba(240,192,48,0.20)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <Bell size={13} className="text-indigo-400" />
+              <Bell size={12} style={{ color: '#f0c030' }} />
             </div>
-            <h3 className="font-bold text-white text-sm">Notifications</h3>
+            <span className="section-label">ALERTS</span>
             {unreadCount > 0 && (
               <span
-                className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-                style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc' }}
+                style={{
+                  padding: '1px 5px',
+                  background: 'rgba(240,192,48,0.12)',
+                  border: '1px solid rgba(240,192,48,0.25)',
+                  borderRadius: 9999,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: '#f0c030',
+                  fontFamily: 'JetBrains Mono, monospace',
+                }}
               >
-                {unreadCount} new
+                {unreadCount}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all duration-200"
-                style={{ color: '#94a3b8' }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#a5b4fc'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#94a3b8'}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--t3)',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  padding: '2px 4px',
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#40c070'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--t3)'}
                 title="Mark all read"
               >
-                <CheckCheck size={11} /> All read
+                <CheckCheck size={11} /> Read all
               </button>
             )}
             <button
               onClick={togglePanel}
-              className="p-1.5 text-slate-600 hover:text-white hover:bg-white/6 rounded-lg transition-all duration-200"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--t3)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 20,
+                height: 20,
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--t1)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--t3)'}
             >
-              <X size={14} />
+              <X size={12} />
             </button>
           </div>
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+        <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {notifications.length === 0 ? (
-            <div className="py-10 text-center">
-              <div className="text-3xl mb-3">🔔</div>
-              <p className="text-slate-400 font-semibold text-sm">All caught up!</p>
-              <p className="text-slate-600 text-xs mt-1">No new notifications right now.</p>
+            <div style={{ padding: '24px 0', textAlign: 'center' }}>
+              <div style={{ fontSize: 20, marginBottom: 6 }}>🔔</div>
+              <p style={{ color: 'var(--t2)', fontSize: 11, fontWeight: 600, margin: '0 0 2px' }}>All caught up!</p>
+              <p style={{ color: 'var(--t3)', fontSize: 9, margin: 0 }}>No alerts right now</p>
             </div>
           ) : (
-            notifications.slice(0, 10).map((n) => (
+            notifications.slice(0, 5).map((n) => (
               <NotificationItem key={n.id} notification={n} />
             ))
           )}
@@ -103,14 +154,23 @@ export const NotificationPanel: React.FC = () => {
         {/* Footer */}
         {notifications.length > 0 && (
           <div
-            className="px-4 py-3 border-t flex-shrink-0"
-            style={{ borderColor: 'var(--border-color)' }}
+            style={{
+              padding: '8px 12px',
+              borderTop: '1px solid var(--border)',
+              flexShrink: 0,
+            }}
           >
             <button
               onClick={() => { togglePanel(); navigate('/notifications'); }}
-              className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors duration-200 w-full justify-center"
+              className="btn-outline-blue"
+              style={{
+                width: '100%',
+                justifyContent: 'center',
+                fontSize: 10,
+                padding: '4px 0',
+              }}
             >
-              View all notifications <ExternalLink size={11} />
+              View all notifications <ExternalLink size={10} />
             </button>
           </div>
         )}

@@ -3,22 +3,22 @@ import { AppShell } from '../components/layout/AppShell';
 import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../store/authStore';
 import type { UserRole } from '../types/User';
-import { Shield, User, Zap, CheckCircle, LogOut, Lock, Eye, Clock } from 'lucide-react';
+import { Shield, User, Zap, CheckCircle, LogOut } from 'lucide-react';
 
-const ROLE_OPTIONS: { value: UserRole; label: string; emoji: string; desc: string }[] = [
-  { value: 'STUDENT',         label: 'Student',         emoji: '🎓', desc: 'Assignments, hackathons, placements' },
-  { value: 'PROFESSOR',       label: 'Professor',        emoji: '📖', desc: 'Research, meetings, student queries' },
-  { value: 'IT_EMPLOYEE',     label: 'IT Employee',      emoji: '💻', desc: 'Technical, infra, incident alerts' },
-  { value: 'HR_PROFESSIONAL', label: 'HR Professional',  emoji: '👥', desc: 'Hiring, onboarding, compliance' },
-  { value: 'MANAGER',         label: 'Manager',          emoji: '📊', desc: 'Reports, approvals, team updates' },
-  { value: 'FREELANCER',      label: 'Freelancer',       emoji: '🚀', desc: 'Client emails, invoices, deadlines' },
+const ROLE_OPTIONS: { value: UserRole; label: string; tag: string; desc: string }[] = [
+  { value: 'STUDENT',         label: 'Student',         tag: 'STU', desc: 'Assignments, hackathons, placements' },
+  { value: 'PROFESSOR',       label: 'Professor',        tag: 'PRF', desc: 'Research, meetings, student queries' },
+  { value: 'IT_EMPLOYEE',     label: 'IT Employee',      tag: 'ITE', desc: 'Technical, infra, incident alerts' },
+  { value: 'HR_PROFESSIONAL', label: 'HR Professional',  tag: 'HRP', desc: 'Hiring, onboarding, compliance' },
+  { value: 'MANAGER',         label: 'Manager',          tag: 'MGR', desc: 'Reports, approvals, team updates' },
+  { value: 'FREELANCER',      label: 'Freelancer',       tag: 'FRL', desc: 'Client emails, invoices, deadlines' },
 ];
 
 const SECURITY_POINTS = [
-  { icon: Eye,   text: 'Gmail access is read-only — Nexora never sends or modifies emails' },
-  { icon: Lock,  text: 'Gmail tokens encrypted at rest with AES-256' },
-  { icon: Clock, text: 'JWT sessions expire automatically after 24 hours' },
-  { icon: Shield, text: 'No emails stored in plain text — only AI-processed metadata' },
+  'Gmail access is read-only — Nexora never sends or modifies emails',
+  'Gmail tokens encrypted at rest with AES-256',
+  'JWT sessions expire automatically after 24 hours',
+  'No emails stored in plain text — only AI-processed metadata',
 ];
 
 export const SettingsPage: React.FC = () => {
@@ -43,43 +43,83 @@ export const SettingsPage: React.FC = () => {
 
   return (
     <AppShell title="Settings" subtitle="Manage your Nexora preferences">
-      <div className="max-w-5xl mx-auto p-5 space-y-5">
+      <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 800, margin: '0 auto', width: '100%' }}>
 
-        {/* Profile card */}
-        <div className="glass rounded-2xl overflow-hidden animate-fade-in">
+        {/* Profile Card */}
+        <div className="surface">
           <div
-            className="flex items-center gap-2.5 px-5 py-3.5 border-b"
-            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              borderBottom: '1px solid var(--border)',
+            }}
           >
             <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.2)' }}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 6,
+                background: 'rgba(79,158,255,0.12)',
+                border: '1px solid rgba(79,158,255,0.20)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <User size={12} className="text-indigo-400" />
+              <User size={12} style={{ color: '#4f9eff' }} />
             </div>
-            <h3 className="font-bold text-white text-sm">Profile</h3>
+            <span className="section-label">PROFILE</span>
           </div>
-          <div className="px-5 py-5 flex items-center gap-4">
+          <div style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
             {user?.profilePictureUrl ? (
               <img
                 src={user.profilePictureUrl}
                 alt="avatar"
-                className="w-14 h-14 rounded-2xl ring-2 ring-indigo-500/20 shadow-lg"
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 10,
+                  border: '1px solid var(--border)',
+                }}
               />
             ) : (
               <div
-                className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-lg"
-                style={{ background: 'linear-gradient(135deg, #6366f1, #7c3aed)', boxShadow: '0 4px 20px rgba(99,102,241,0.3)' }}
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 10,
+                  background: 'var(--s2)',
+                  border: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: 'var(--t1)',
+                }}
               >
                 {user?.name?.[0]?.toUpperCase()}
               </div>
             )}
             <div>
-              <p className="font-bold text-white text-base">{user?.name}</p>
-              <p className="text-sm text-slate-500 mt-0.5">{user?.email}</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--t1)', margin: '0 0 2px' }}>{user?.name}</p>
+              <p style={{ fontSize: 11, color: 'var(--t3)', margin: '0 0 6px' }}>{user?.email}</p>
               <span
-                className="inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
-                style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.22)', color: '#a5b4fc' }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 8px',
+                  background: 'rgba(240,192,48,0.10)',
+                  border: '1px solid rgba(240,192,48,0.22)',
+                  borderRadius: 9999,
+                  fontSize: 9,
+                  color: '#f0c030',
+                  fontWeight: 700,
+                  fontFamily: 'JetBrains Mono, monospace',
+                }}
               >
                 <Zap size={9} /> {user?.userRole?.replace('_', ' ')}
               </span>
@@ -88,62 +128,97 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         {/* Role selection */}
-        <div className="glass rounded-2xl overflow-hidden animate-fade-in delay-100">
+        <div className="surface animate-fade-in delay-100">
           <div
-            className="flex items-center gap-2.5 px-5 py-3.5 border-b"
-            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              borderBottom: '1px solid var(--border)',
+            }}
           >
             <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.2)' }}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 6,
+                background: 'rgba(240,192,48,0.12)',
+                border: '1px solid rgba(240,192,48,0.20)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <Zap size={12} className="text-indigo-400" />
+              <Zap size={12} style={{ color: '#f0c030' }} />
             </div>
-            <h3 className="font-bold text-white text-sm">Your Role</h3>
-            <span className="ml-auto text-xs text-slate-600 font-medium">Affects email prioritization</span>
+            <span className="section-label" style={{ flex: 1 }}>YOUR ROLE</span>
+            <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>Affects prioritization</span>
           </div>
-          <div className="p-5">
-            <p className="text-sm text-slate-400 mb-4 leading-relaxed">
-              Nexora uses your role to prioritize notifications and surface the most relevant emails.
+          <div style={{ padding: 16 }}>
+            <p style={{ fontSize: 12, color: 'var(--t2)', margin: '0 0 14px', lineHeight: 1.6 }}>
+              Nexora reads every email and ranks/prioritizes notification cards specifically suited for your role.
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
-              {ROLE_OPTIONS.map(({ value, label, emoji, desc }) => {
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 10,
+                marginBottom: 16,
+              }}
+            >
+              {ROLE_OPTIONS.map(({ value, label, tag, desc }) => {
                 const isSelected = selectedRole === value;
                 return (
                   <button
                     key={value}
                     id={`settings-role-${value.toLowerCase()}`}
                     onClick={() => setSelectedRole(value)}
-                    className="relative p-3 rounded-xl text-left transition-all duration-200 group"
-                    style={isSelected ? {
-                      background: 'rgba(99,102,241,0.12)',
-                      border: '1px solid rgba(99,102,241,0.35)',
-                      boxShadow: '0 2px 12px rgba(99,102,241,0.15)',
-                    } : {
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid rgba(255,255,255,0.07)',
+                    style={{
+                      background: isSelected ? 'rgba(240,192,48,0.05)' : 'var(--s1)',
+                      border: isSelected ? '1px solid #f0c030' : '1px solid var(--border)',
+                      borderRadius: 8,
+                      padding: '10px 12px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      position: 'relative',
                     }}
-                    onMouseEnter={(e) => {
+                    onMouseEnter={e => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(99,102,241,0.2)';
-                        (e.currentTarget as HTMLElement).style.background = 'rgba(99,102,241,0.05)';
+                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(240,192,48,0.30)';
                       }
                     }}
-                    onMouseLeave={(e) => {
+                    onMouseLeave={e => {
                       if (!isSelected) {
-                        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.07)';
-                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
+                        (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
                       }
                     }}
                   >
                     {isSelected && (
-                      <div className="absolute top-2 right-2">
-                        <CheckCircle size={13} className="text-indigo-400" />
+                      <div style={{ position: 'absolute', top: 10, right: 10 }}>
+                        <CheckCircle size={13} style={{ color: '#f0c030' }} />
                       </div>
                     )}
-                    <div className="text-lg mb-1.5">{emoji}</div>
-                    <p className={`text-xs font-bold leading-tight mb-0.5 ${isSelected ? 'text-indigo-300' : 'text-slate-300'}`}>{label}</p>
-                    <p className="text-[10px] text-slate-600 leading-snug">{desc}</p>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        fontSize: 8,
+                        fontWeight: 700,
+                        letterSpacing: '0.12em',
+                        fontFamily: 'JetBrains Mono, monospace',
+                        color: isSelected ? '#f0c030' : 'var(--t3)',
+                        background: isSelected ? 'rgba(240,192,48,0.10)' : 'rgba(61,85,112,0.15)',
+                        border: `1px solid ${isSelected ? 'rgba(240,192,48,0.20)' : 'rgba(61,85,112,0.20)'}`,
+                        padding: '1px 5px',
+                        borderRadius: 3,
+                        marginBottom: 6,
+                      }}
+                    >
+                      {tag}
+                    </span>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)', margin: '0 0 2px' }}>{label}</p>
+                    <p style={{ fontSize: 9, color: 'var(--t3)', margin: 0, lineHeight: 1.4 }}>{desc}</p>
                   </button>
                 );
               })}
@@ -153,56 +228,79 @@ export const SettingsPage: React.FC = () => {
               id="save-role-btn"
               onClick={handleSaveRole}
               disabled={isSaving || !hasChanges}
-              className="btn-primary flex items-center gap-2 text-sm transition-all"
+              className="btn-gold"
+              style={{
+                fontSize: 12,
+                padding: '8px 16px',
+                opacity: (!hasChanges || isSaving) ? 0.4 : 1,
+                cursor: (!hasChanges || isSaving) ? 'not-allowed' : 'pointer',
+              }}
             >
-              {isSaving ? (
-                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              ) : saved ? (
-                <CheckCircle size={15} />
-              ) : null}
-              {saved ? 'Saved!' : isSaving ? 'Saving…' : 'Save Role'}
+              {isSaving ? 'Saving…' : saved ? 'Saved!' : 'Save Role'}
             </button>
           </div>
         </div>
 
         {/* Privacy & Security */}
-        <div className="glass rounded-2xl overflow-hidden animate-fade-in delay-200">
+        <div className="surface animate-fade-in delay-200">
           <div
-            className="flex items-center gap-2.5 px-5 py-3.5 border-b"
-            style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 14px',
+              borderBottom: '1px solid var(--border)',
+            }}
           >
             <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center"
-              style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.2)' }}
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 6,
+                background: 'rgba(64,192,112,0.12)',
+                border: '1px solid rgba(64,192,112,0.20)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              <Shield size={12} className="text-emerald-400" />
+              <Shield size={12} style={{ color: '#40c070' }} />
             </div>
-            <h3 className="font-bold text-white text-sm">Privacy & Security</h3>
+            <span className="section-label">PRIVACY &amp; SECURITY</span>
           </div>
-          <div className="p-5 space-y-3">
-            {SECURITY_POINTS.map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-start gap-3">
-                <div
-                  className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.15)' }}
-                >
-                  <Icon size={11} className="text-emerald-400" />
-                </div>
-                <p className="text-sm text-slate-400 leading-relaxed">{text}</p>
+          <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {SECURITY_POINTS.map((text, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                <span style={{ color: '#40c070', fontSize: 12, flexShrink: 0 }}>✓</span>
+                <span style={{ fontSize: 11, color: 'var(--t2)', lineHeight: 1.5 }}>{text}</span>
               </div>
             ))}
 
             <div
-              className="pt-4 mt-2 border-t"
-              style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+              style={{
+                paddingTop: 14,
+                marginTop: 6,
+                borderTop: '1px solid var(--border)',
+              }}
             >
               <button
                 id="revoke-access-btn"
                 onClick={handleLogout}
-                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 font-semibold transition-colors duration-200 group"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--high)',
+                  fontWeight: 600,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
               >
-                <LogOut size={14} className="group-hover:-translate-x-0.5 transition-transform duration-200" />
-                Revoke Gmail access & logout
+                <LogOut size={12} />
+                Revoke access &amp; log out
               </button>
             </div>
           </div>

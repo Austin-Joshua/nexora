@@ -3,22 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { dashboardApi } from '../api/dashboardApi';
 import { AppShell } from '../components/layout/AppShell';
-import { QuickStats } from '../components/dashboard/QuickStats';
 import { PriorityFeed } from '../components/dashboard/PriorityFeed';
 import { DeadlineCard } from '../components/dashboard/DeadlineCard';
 import { ActionItemList } from '../components/dashboard/ActionItemList';
+import { StatCard } from '../components/common/StatCard';
 import { useAuthStore } from '../store/authStore';
-import { CATEGORY_LABELS } from '../utils/categoryColors';
-import { Calendar, TrendingUp, Sparkles } from 'lucide-react';
-
-const CATEGORY_DOT_COLORS: Record<string, string> = {
-  ASSIGNMENT:   '#818cf8', ATTENDANCE:   '#f87171',
-  HACKATHON:    '#fb923c', PLACEMENT:    '#34d399',
-  INTERNSHIP:   '#2dd4bf', MEETING:      '#c084fc',
-  ANNOUNCEMENT: '#fbbf24', RESEARCH:     '#22d3ee',
-  FINANCE:      '#4ade80', PERSONAL:     '#f472b6',
-  PROMOTIONAL:  '#94a3b8', SPAM:         '#ef4444',
-};
+import { CAT_COLORS, CATEGORY_LABELS } from '../utils/catColors';
+import { Mail, Clock, ListCheck, Tag } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -27,7 +18,7 @@ export const DashboardPage: React.FC = () => {
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: dashboardApi.getSummary,
-    refetchInterval: 300_000,
+    staleTime: 300_000,
   });
 
   const hour = new Date().getHours();
@@ -37,76 +28,114 @@ export const DashboardPage: React.FC = () => {
   return (
     <AppShell
       title="Dashboard"
-      subtitle={`${greeting}, ${firstName} — here's what matters today`}
+      subtitle={`${greeting}, ${firstName}`}
     >
-      <div className="p-5 space-y-6">
+      <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
         {isLoading ? (
           <DashboardSkeleton />
         ) : (
           <>
-            {/* Quick Stats */}
-            <div className="animate-fade-in">
-              <QuickStats
-                unreadCount={data?.unreadCount ?? 0}
-                upcomingDeadlines={data?.upcomingDeadlines?.length ?? 0}
-                pendingActions={data?.pendingActions?.length ?? 0}
-                categoryCounts={data?.categoryCounts ?? {}}
+            {/* ROW 1 — 4 StatCards */}
+            <div
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}
+              className="animate-fade-in"
+            >
+              <StatCard
+                label="Unread"
+                value={data?.unreadCount ?? 0}
+                accentColor="#f05050"
+                icon={Mail}
+                sub="emails need attention"
+              />
+              <StatCard
+                label="Deadlines"
+                value={data?.upcomingDeadlines?.length ?? 0}
+                accentColor="#f0c030"
+                icon={Clock}
+                sub="next 7 days"
+              />
+              <StatCard
+                label="Pending Actions"
+                value={data?.pendingActions?.length ?? 0}
+                accentColor="#4f9eff"
+                icon={ListCheck}
+                sub="action items"
+              />
+              <StatCard
+                label="Categories"
+                value={Object.keys(data?.categoryCounts ?? {}).length}
+                accentColor="#40c070"
+                icon={Tag}
+                sub="active categories"
               />
             </div>
 
-            {/* Category overview */}
+            {/* ROW 2 — Category pill row */}
             {Object.keys(data?.categoryCounts ?? {}).length > 0 && (
               <div className="animate-fade-in delay-100">
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp size={14} className="text-indigo-400" />
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Category Breakdown</p>
-                </div>
-                <div className="glass rounded-2xl p-4">
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(data?.categoryCounts ?? {}).map(([cat, count]) => (
+                <p className="section-label" style={{ marginBottom: 8 }}>CATEGORY OVERVIEW</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {Object.entries(data?.categoryCounts ?? {}).map(([cat, count]) => {
+                    const cfg = CAT_COLORS[cat];
+                    const color = cfg?.color ?? '#3d5570';
+                    return (
                       <button
                         key={cat}
                         onClick={() => navigate(`/inbox?category=${cat}`)}
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition-all duration-200 hover:scale-105 hover:brightness-125"
+                        title={`View ${CATEGORY_LABELS[cat] ?? cat} emails`}
                         style={{
-                          background: `${CATEGORY_DOT_COLORS[cat] ?? '#94a3b8'}12`,
-                          border: `1px solid ${CATEGORY_DOT_COLORS[cat] ?? '#94a3b8'}25`,
-                          color: CATEGORY_DOT_COLORS[cat] ?? '#94a3b8',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '4px 10px',
+                          background: color + '12',
+                          border: `1px solid ${color}22`,
+                          borderRadius: 6,
+                          color,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          fontFamily: 'JetBrains Mono, monospace',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          letterSpacing: '0.04em',
                         }}
-                        title={`View ${(CATEGORY_LABELS as Record<string, string>)[cat] ?? cat} emails`}
+                        onMouseEnter={e => {
+                          (e.currentTarget as HTMLElement).style.background = color + '22';
+                          (e.currentTarget as HTMLElement).style.borderColor = color + '40';
+                        }}
+                        onMouseLeave={e => {
+                          (e.currentTarget as HTMLElement).style.background = color + '12';
+                          (e.currentTarget as HTMLElement).style.borderColor = color + '22';
+                        }}
                       >
-                        <span
-                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                          style={{ background: CATEGORY_DOT_COLORS[cat] ?? '#94a3b8' }}
-                        />
-                        {(CATEGORY_LABELS as Record<string, string>)[cat] ?? cat}
-                        <strong className="text-white/90">{count as number}</strong>
+                        {cfg?.label ?? cat}
+                        <span style={{ opacity: 0.7 }}>{count as number}</span>
                       </button>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Main grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 animate-fade-in delay-200">
+            {/* ROW 3 — Bento grid */}
+            <div
+              style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 10 }}
+              className="animate-fade-in delay-200"
+            >
+              {/* Priority Feed */}
               <PriorityFeed emails={data?.priorityEmails ?? []} />
 
-              {/* Deadlines */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 px-1">
-                  <Calendar size={14} className="text-red-400" />
-                  <h3 className="font-bold text-white text-sm">Upcoming Deadlines</h3>
-                  <span className="ml-auto text-xs text-slate-600 font-medium">Next 7 days</span>
-                </div>
+              {/* Upcoming Deadlines */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <p className="section-label">UPCOMING DEADLINES</p>
                 {(data?.upcomingDeadlines?.length ?? 0) === 0 ? (
-                  <div className="glass-sm rounded-2xl p-8 text-center">
-                    <div className="text-3xl mb-2">🎉</div>
-                    <p className="text-slate-500 text-sm font-medium">No upcoming deadlines</p>
-                    <p className="text-slate-600 text-xs mt-1">You're all caught up!</p>
+                  <div className="surface" style={{ padding: 32, textAlign: 'center' }}>
+                    <div style={{ fontSize: 22, marginBottom: 8 }}>🎉</div>
+                    <p style={{ color: 'var(--t2)', fontSize: 12, fontWeight: 600, margin: '0 0 4px' }}>No deadlines</p>
+                    <p style={{ color: 'var(--t3)', fontSize: 10, margin: 0 }}>All caught up!</p>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {data?.upcomingDeadlines?.map((email: any, i: number) => (
                       <div key={email.id} className={`animate-fade-in delay-${(i + 1) * 50}`}>
                         <DeadlineCard email={email} />
@@ -116,23 +145,9 @@ export const DashboardPage: React.FC = () => {
                 )}
               </div>
 
+              {/* Pending Actions */}
               <ActionItemList actions={data?.pendingActions ?? []} />
             </div>
-
-            {/* Today's meetings */}
-            {(data?.todaysMeetings?.length ?? 0) > 0 && (
-              <div className="animate-fade-in delay-300">
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles size={14} className="text-violet-400" />
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Today's Meetings</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {data?.todaysMeetings?.map((email: any) => (
-                    <DeadlineCard key={email.id} email={email} />
-                  ))}
-                </div>
-              </div>
-            )}
           </>
         )}
       </div>
@@ -141,16 +156,16 @@ export const DashboardPage: React.FC = () => {
 };
 
 const DashboardSkeleton: React.FC = () => (
-  <div className="space-y-6 animate-fade-in">
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }} className="animate-fade-in">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="h-24 skeleton rounded-2xl" />
+        <div key={i} className="skeleton" style={{ height: 88 }} />
       ))}
     </div>
-    <div className="h-16 skeleton rounded-2xl" />
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className="skeleton" style={{ height: 44 }} />
+    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 10 }}>
       {[...Array(3)].map((_, i) => (
-        <div key={i} className="h-64 skeleton rounded-2xl" />
+        <div key={i} className="skeleton" style={{ height: 260 }} />
       ))}
     </div>
   </div>

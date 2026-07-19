@@ -6,56 +6,59 @@ import { EmailDetail } from '../components/email/EmailDetail';
 import { SenderView } from '../components/email/SenderView';
 import { useEmails } from '../hooks/useEmails';
 import { useEmailStore } from '../store/emailStore';
+import { emailApi } from '../api/emailApi';
+import { useQueryClient } from '@tanstack/react-query';
 import type { EmailCategory } from '../types/Email';
-import { SlidersHorizontal, Users, Search, X, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import { CAT_COLORS } from '../utils/catColors';
 
 type ViewMode = EmailCategory | 'ALL' | 'SENDERS';
 
-const CATEGORIES: Array<{ key: ViewMode; label: string; emoji: string }> = [
-  { key: 'ALL',          label: 'All',          emoji: '📥' },
-  { key: 'SENDERS',     label: 'Senders',      emoji: '👤' },
-  { key: 'ASSIGNMENT',  label: 'Assignments',  emoji: '📚' },
-  { key: 'HACKATHON',   label: 'Hackathons',   emoji: '🚀' },
-  { key: 'PLACEMENT',   label: 'Placement',    emoji: '💼' },
-  { key: 'INTERNSHIP',  label: 'Internships',  emoji: '🌟' },
-  { key: 'MEETING',     label: 'Meetings',     emoji: '📅' },
-  { key: 'ATTENDANCE',  label: 'Attendance',   emoji: '🎓' },
-  { key: 'ANNOUNCEMENT',label: 'Announcements',emoji: '📢' },
-  { key: 'RESEARCH',    label: 'Research',     emoji: '🔬' },
-  { key: 'PERSONAL',    label: 'Personal',     emoji: '👤' },
+const TABS: Array<{ key: ViewMode; label: string }> = [
+  { key: 'ALL',           label: 'All' },
+  { key: 'SENDERS',      label: 'Senders' },
+  { key: 'ASSIGNMENT',   label: 'Assignments' },
+  { key: 'HACKATHON',    label: 'Hackathons' },
+  { key: 'PLACEMENT',    label: 'Placement' },
+  { key: 'ATTENDANCE',   label: 'Attendance' },
+  { key: 'MEETING',      label: 'Meetings' },
+  { key: 'ANNOUNCEMENT', label: 'Announcements' },
+  { key: 'RESEARCH',     label: 'Research' },
+  { key: 'PERSONAL',     label: 'Personal' },
 ];
 
 export const InboxPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const urlEmailId = searchParams.get('emailId');
   const urlCategory = searchParams.get('category') as ViewMode | null;
-  const [showFilters, setShowFilters] = useState(false);
+
+  // C.9 — read URL params on mount
   const [activeView, setActiveView] = useState<ViewMode>(urlCategory ?? 'ALL');
-  const [inboxSearch, setInboxSearch] = useState('');
-  const [searchFocused, setSearchFocused] = useState(false);
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [inboxSearch, setInboxSearch] = useState('');
 
   const { setActiveCategory, selectedEmail, setSelectedEmail } = useEmailStore();
   const { emails, isLoading, categoryCounts } = useEmails();
 
-  // Sync URL category param into active view on mount
+  // Sync URL category on mount
   useEffect(() => {
-    if (urlCategory && CATEGORIES.some(c => c.key === urlCategory)) {
+    if (urlCategory && TABS.some(t => t.key === urlCategory)) {
       setActiveView(urlCategory);
       setActiveCategory(urlCategory as EmailCategory | 'ALL');
     }
   }, [urlCategory]);
 
+  // C.9 — open email from URL emailId param
   useEffect(() => {
     if (urlEmailId && emails.length > 0) {
-      const found = emails.find((e) => e.id === parseInt(urlEmailId));
+      const found = emails.find(e => e.id === parseInt(urlEmailId));
       if (found) setSelectedEmail(found);
     }
   }, [urlEmailId, emails]);
 
-  // Filter displayed emails by local search and unread toggle
-  const displayedEmails = emails.filter((email) => {
+  const displayedEmails = emails.filter(email => {
     const matchesSearch = !inboxSearch || (
       email.subject?.toLowerCase().includes(inboxSearch.toLowerCase()) ||
       email.senderName?.toLowerCase().includes(inboxSearch.toLowerCase()) ||
@@ -73,69 +76,62 @@ export const InboxPage: React.FC = () => {
     setSelectedEmail(null);
   };
 
+  // C.8 — Mark email as read on open
+  const handleEmailSelect = async (email: any) => {
+    setSelectedEmail(email);
+    if (!email.isRead) {
+      try {
+        await emailApi.markRead(email.id);
+        // Invalidate dashboard unread count
+        queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      } catch {
+        // Silently ignore - not critical
+      }
+    }
+  };
+
   return (
     <AppShell title="Inbox" subtitle="Your Gmail, intelligently organized">
-      <div className="flex h-full overflow-hidden flex-col">
-        {/* Category / View tabs */}
+      <div style={{ display: 'flex', height: '100%', overflow: 'hidden', flexDirection: 'column' }}>
+        {/* Tab bar */}
         <div
-          className="flex-shrink-0 border-b"
-          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+          style={{
+            flexShrink: 0,
+            borderBottom: '1px solid var(--border)',
+          }}
         >
-          {/* Tab scroll */}
-          <div className="overflow-x-auto">
-            <div className="flex gap-1 p-3 min-w-max">
-              {CATEGORIES.map(({ key, label, emoji }) => {
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ display: 'flex', gap: 4, padding: '8px 12px', minWidth: 'max-content' }}>
+              {TABS.map(({ key, label }) => {
                 const isActive = activeView === key;
-                const isSenders = key === 'SENDERS';
-                const count = !isSenders && key !== 'ALL'
+                const count = key !== 'ALL' && key !== 'SENDERS'
                   ? (categoryCounts[key as string] ?? 0)
                   : undefined;
+                const catColor = key !== 'ALL' && key !== 'SENDERS' ? CAT_COLORS[key]?.color : undefined;
 
                 return (
                   <button
                     key={key}
                     id={`category-tab-${key.toLowerCase()}`}
                     onClick={() => handleTabClick(key)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-200"
-                    style={isActive ? {
-                      background: isSenders
-                        ? 'rgba(16,185,129,0.15)'
-                        : 'rgba(99,102,241,0.15)',
-                      border: `1px solid ${isSenders ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)'}`,
-                      color: isSenders ? '#6ee7b7' : '#a5b4fc',
-                      boxShadow: `0 2px 8px ${isSenders ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)'}`,
-                    } : {
-                      background: 'transparent',
-                      border: '1px solid transparent',
-                      color: 'rgba(100,116,139,0.9)',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        (e.currentTarget as HTMLElement).style.color = 'white';
-                        (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        (e.currentTarget as HTMLElement).style.color = 'rgba(100,116,139,0.9)';
-                        (e.currentTarget as HTMLElement).style.background = 'transparent';
-                      }
-                    }}
+                    className={`tab-item${isActive ? ' active' : ''}`}
+                    style={isActive && catColor ? {
+                      color: catColor,
+                      background: catColor + '18',
+                      borderColor: catColor + '40',
+                    } : {}}
                   >
-                    <span className="text-[11px]">{emoji}</span>
                     {label}
-                    {isSenders && isActive && (
-                      <Users size={10} className="ml-0.5 text-emerald-400" />
-                    )}
                     {count !== undefined && count > 0 && (
                       <span
-                        className="ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                        style={isActive ? {
-                          background: 'rgba(99,102,241,0.25)',
-                          color: '#c7d2fe',
-                        } : {
-                          background: 'rgba(255,255,255,0.08)',
-                          color: '#64748b',
+                        style={{
+                          padding: '0 5px',
+                          borderRadius: 9999,
+                          fontSize: 9,
+                          fontWeight: 700,
+                          background: isActive ? 'rgba(240,192,48,0.20)' : 'rgba(61,85,112,0.30)',
+                          color: isActive ? '#f0c030' : 'var(--t3)',
+                          fontFamily: 'JetBrains Mono, monospace',
                         }}
                       >
                         {count}
@@ -147,131 +143,140 @@ export const InboxPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Toolbar: count, search, filters (only shown for email list views) */}
+          {/* Toolbar */}
           {activeView !== 'SENDERS' && (
-            <div className="px-3 pb-2 flex items-center gap-2">
-              <span className="text-[10px] text-slate-600 font-semibold flex-shrink-0">
+            <div style={{ padding: '0 12px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  fontSize: 10,
+                  color: 'var(--t3)',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  flexShrink: 0,
+                }}
+              >
                 {displayedEmails.length} email{displayedEmails.length !== 1 ? 's' : ''}
               </span>
 
-              {/* Inline search */}
-              <div className={`relative flex-1 max-w-xs transition-all duration-200 ${searchFocused ? 'flex-none w-56' : 'w-44'}`}>
-                <Search
-                  size={11}
-                  className={`absolute left-2.5 top-1/2 -translate-y-1/2 transition-colors ${searchFocused ? 'text-indigo-400' : 'text-slate-600'}`}
-                />
-                <input
-                  id="inbox-search"
-                  type="text"
-                  placeholder="Search..."
-                  value={inboxSearch}
-                  onChange={(e) => setInboxSearch(e.target.value)}
-                  onFocus={() => setSearchFocused(true)}
-                  onBlur={() => setSearchFocused(false)}
-                  className="w-full pl-7 pr-6 py-1 text-[11px] rounded-lg text-slate-300 placeholder-slate-600 focus:outline-none transition-all duration-200"
-                  style={{
-                    background: searchFocused ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.04)',
-                    border: searchFocused ? '1px solid rgba(99,102,241,0.35)' : '1px solid rgba(255,255,255,0.07)',
-                  }}
-                />
-                {inboxSearch && (
-                  <button
-                    onClick={() => setInboxSearch('')}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300"
-                  >
-                    <X size={10} />
-                  </button>
-                )}
-              </div>
+              <input
+                id="inbox-search"
+                type="text"
+                placeholder="Search emails..."
+                value={inboxSearch}
+                onChange={e => setInboxSearch(e.target.value)}
+                style={{
+                  flex: 1,
+                  maxWidth: 200,
+                  height: 26,
+                  background: 'var(--s1)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 6,
+                  padding: '0 8px',
+                  fontSize: 11,
+                  color: 'var(--t1)',
+                  outline: 'none',
+                }}
+                onFocus={e => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(79,158,255,0.45)'; }}
+                onBlur={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
+              />
 
-              {/* Unread only toggle */}
               <button
                 id="unread-only-toggle"
                 onClick={() => setUnreadOnly(u => !u)}
-                className="flex items-center gap-1 text-[10px] font-semibold transition-colors duration-200 flex-shrink-0"
-                style={{ color: unreadOnly ? '#a5b4fc' : 'rgba(100,116,139,0.9)' }}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: unreadOnly ? '#f0c030' : 'var(--t3)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  transition: 'color 0.15s ease',
+                }}
                 title={unreadOnly ? 'Show all emails' : 'Show unread only'}
               >
                 {unreadOnly ? <EyeOff size={10} /> : <Eye size={10} />}
                 {unreadOnly ? 'Unread' : 'All'}
-              </button>
-
-              <button
-                onClick={() => setShowFilters(f => !f)}
-                className="flex items-center gap-1 text-[10px] text-slate-600 hover:text-slate-300 transition-colors duration-200 font-semibold flex-shrink-0"
-              >
-                <SlidersHorizontal size={10} />
-                {showFilters ? 'Hide' : 'Filter'}
               </button>
             </div>
           )}
         </div>
 
         {/* Content area */}
-        <div className="flex-1 overflow-hidden">
+        <div style={{ flex: 1, overflow: 'hidden' }}>
           {activeView === 'SENDERS' ? (
             <SenderView />
           ) : (
-            <div className="flex h-full overflow-hidden relative">
-              {/* Left panel: list (hidden on mobile if an email is selected) */}
+            <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+              {/* List panel */}
               <div
-                className={`w-full md:w-96 flex-shrink-0 md:border-r flex flex-col overflow-hidden transition-all duration-300 ${
-                  selectedEmail ? 'hidden md:flex' : 'flex'
-                }`}
-                style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                style={{
+                  width: selectedEmail ? 280 : '100%',
+                  flexShrink: 0,
+                  borderRight: '1px solid var(--border)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'width 0.25s ease',
+                }}
               >
-                <div className="flex-1 overflow-y-auto">
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                   <EmailList
                     emails={displayedEmails}
                     isLoading={isLoading}
-                    onEmailSelect={(email) => setSelectedEmail(email)}
+                    onEmailSelect={handleEmailSelect}
                   />
                 </div>
               </div>
 
-              {/* Right panel: detail (full screen on mobile if selected) */}
-              <div
-                className={`flex-1 overflow-hidden transition-all duration-300 ${
-                  selectedEmail || urlEmailId ? 'flex' : 'hidden md:flex'
-                }`}
-              >
-                {selectedEmail || urlEmailId ? (
-                  <div className="w-full h-full animate-slide-right">
-                    <EmailDetail
-                      emailId={selectedEmail ? selectedEmail.id : parseInt(urlEmailId!)}
-                      onClose={() => {
-                        setSelectedEmail(null);
-                        navigate('/inbox', { replace: true });
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <EmptyDetail />
-                )}
-              </div>
-            </div>
+              {/* Detail panel */}
+              {(selectedEmail || urlEmailId) && (
+                <div style={{ flex: 1, overflow: 'hidden' }} className="animate-slide-right">
+                  <EmailDetail
+                    emailId={selectedEmail ? selectedEmail.id : parseInt(urlEmailId!)}
+                    onClose={() => {
+                      setSelectedEmail(null);
+                      navigate('/inbox', { replace: true });
+                    }}
+                  />
+                </div>
+              )}
 
+              {!selectedEmail && !urlEmailId && (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ textAlign: 'center' }} className="animate-fade-in">
+                    <div
+                      style={{
+                        width: 64,
+                        height: 64,
+                        background: 'var(--s1)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 14,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        fontSize: 28,
+                      }}
+                    >
+                      ✉️
+                    </div>
+                    <p style={{ color: 'var(--t1)', fontWeight: 700, fontSize: 14, margin: '0 0 4px' }}>
+                      Select an email
+                    </p>
+                    <p style={{ color: 'var(--t3)', fontSize: 11, margin: 0 }}>
+                      Choose from your inbox on the left
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
     </AppShell>
   );
 };
-
-const EmptyDetail: React.FC = () => (
-  <div className="flex items-center justify-center h-full">
-    <div className="text-center animate-fade-in">
-      <div
-        className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-5 animate-float"
-        style={{
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.07)',
-        }}
-      >
-        <span className="text-4xl">✉️</span>
-      </div>
-      <p className="text-slate-300 font-bold text-base">Select an email to read</p>
-      <p className="text-slate-600 text-sm mt-1.5 font-medium">Choose from your inbox on the left</p>
-    </div>
-  </div>
-);

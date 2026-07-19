@@ -2,73 +2,30 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import type { UserRole } from '../types/User';
-import { GraduationCap, BookOpen, Monitor, Users, Briefcase, Globe2, ArrowRight, Zap, CheckCircle, Lock } from 'lucide-react';
+import { GraduationCap, BookOpen, Monitor, Users, Briefcase, Globe2, ArrowRight, Zap, CheckCircle } from 'lucide-react';
 
 interface RoleOption {
   role: UserRole;
   icon: React.ReactNode;
   label: string;
   description: string;
-  gradient: string;
-  glow: string;
+  tag: string;
 }
 
 const ROLES: RoleOption[] = [
-  {
-    role: 'STUDENT',
-    icon: <GraduationCap size={26} />,
-    label: 'Student',
-    description: 'Assignments, deadlines, placements & hackathons',
-    gradient: 'linear-gradient(135deg, #6366f1, #7c3aed)',
-    glow: 'rgba(99,102,241,0.35)',
-  },
-  {
-    role: 'PROFESSOR',
-    icon: <BookOpen size={26} />,
-    label: 'Professor',
-    description: 'Research, student queries & meeting management',
-    gradient: 'linear-gradient(135deg, #059669, #0d9488)',
-    glow: 'rgba(5,150,105,0.35)',
-  },
-  {
-    role: 'IT_EMPLOYEE',
-    icon: <Monitor size={26} />,
-    label: 'IT Employee',
-    description: 'Support tickets, system alerts & tech comms',
-    gradient: 'linear-gradient(135deg, #2563eb, #0891b2)',
-    glow: 'rgba(37,99,235,0.35)',
-  },
-  {
-    role: 'HR_PROFESSIONAL',
-    icon: <Users size={26} />,
-    label: 'HR Professional',
-    description: 'Recruitment, onboarding & policy communications',
-    gradient: 'linear-gradient(135deg, #db2777, #e11d48)',
-    glow: 'rgba(219,39,119,0.35)',
-  },
-  {
-    role: 'MANAGER',
-    icon: <Briefcase size={26} />,
-    label: 'Manager',
-    description: 'Team updates, approvals & project email tracking',
-    gradient: 'linear-gradient(135deg, #d97706, #ea580c)',
-    glow: 'rgba(217,119,6,0.35)',
-  },
-  {
-    role: 'FREELANCER',
-    icon: <Globe2 size={26} />,
-    label: 'Freelancer',
-    description: 'Client emails, invoices, deadlines & proposals',
-    gradient: 'linear-gradient(135deg, #7c3aed, #6d28d9)',
-    glow: 'rgba(124,58,237,0.35)',
-  },
+  { role: 'STUDENT',      icon: <GraduationCap size={20} />, tag: 'STU', label: 'Student',         description: 'Assignments, deadlines, placements & hackathons' },
+  { role: 'PROFESSOR',    icon: <BookOpen size={20} />,       tag: 'PRF', label: 'Professor',       description: 'Research, student queries & meeting management' },
+  { role: 'IT_EMPLOYEE',  icon: <Monitor size={20} />,        tag: 'ITE', label: 'IT Employee',     description: 'Support tickets, system alerts & tech comms' },
+  { role: 'HR_PROFESSIONAL', icon: <Users size={20} />,       tag: 'HRP', label: 'HR Professional', description: 'Recruitment, onboarding & policy communications' },
+  { role: 'MANAGER',      icon: <Briefcase size={20} />,      tag: 'MGR', label: 'Manager',         description: 'Team updates, approvals & project email tracking' },
+  { role: 'FREELANCER',   icon: <Globe2 size={20} />,         tag: 'FRL', label: 'Freelancer',      description: 'Client emails, invoices, deadlines & proposals' },
 ];
 
 const ACCESS_POINTS = [
-  { text: 'Reads your Gmail inbox (read-only OAuth scope)', ok: true },
-  { text: 'Stores AI summaries & action items — not raw emails', ok: true },
-  { text: 'Sends email content to Gemini AI for classification', ok: true },
-  { text: 'Never sends, modifies, or deletes your emails', ok: true },
+  'Reads your Gmail inbox (read-only OAuth scope)',
+  'Stores AI summaries & action items — not raw emails',
+  'Sends email content to AI for classification',
+  'Never sends, modifies, or deletes your emails',
 ];
 
 export const OnboardingPage: React.FC = () => {
@@ -76,6 +33,7 @@ export const OnboardingPage: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const { updateRole, user } = useAuth();
   const navigate = useNavigate();
+  const firstName = user?.name?.split(' ')[0] ?? 'there';
 
   const handleContinue = async () => {
     if (!selectedRole) return;
@@ -89,85 +47,114 @@ export const OnboardingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background orb */}
-      <div
-        className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse, rgba(99,102,241,0.1) 0%, transparent 70%)',
-          filter: 'blur(40px)',
-        }}
-      />
-
-      <div className="relative w-full max-w-3xl animate-fade-in-up">
-        {/* Logo + heading */}
-        <div className="text-center mb-10">
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#080c12',
+        backgroundImage: 'radial-gradient(circle, #1a2535 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 32,
+      }}
+    >
+      <div style={{ width: '100%', maxWidth: 700 }} className="animate-fade-in-up">
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
           <div
-            className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-5 animate-glow"
             style={{
-              background: 'linear-gradient(135deg, #6366f1, #7c3aed)',
-              boxShadow: '0 8px 32px rgba(99,102,241,0.4)',
+              width: 44,
+              height: 44,
+              background: '#f0c030',
+              borderRadius: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
             }}
           >
-            <Zap size={28} className="text-white" />
+            <Zap size={20} style={{ color: '#080c12' }} />
           </div>
-          <h1 className="text-4xl font-black text-white mb-3 tracking-tight">
-            Welcome, {user?.name?.split(' ')[0] ?? 'there'}! 👋
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: '#e2ecf5', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+            Welcome,{' '}
+            <span style={{ color: '#f0c030' }}>{firstName}</span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed max-w-md mx-auto">
-            Tell Nexora your role so it can prioritize
-            <span className="text-slate-300 font-medium"> exactly what matters to you.</span>
+          <p style={{ fontSize: 13, color: '#7890a8', margin: 0, lineHeight: 1.6 }}>
+            Choose your role — this shapes how Nexora prioritizes your emails
           </p>
         </div>
 
-        {/* Role grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">
-          {ROLES.map(({ role, icon, label, description, gradient, glow }, index) => {
+        {/* Role grid — 3×2 */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 10,
+            marginBottom: 20,
+          }}
+        >
+          {ROLES.map(({ role, icon, tag, label, description }, index) => {
             const isSelected = selectedRole === role;
             return (
               <button
                 key={role}
                 id={`role-${role.toLowerCase()}`}
                 onClick={() => setSelectedRole(role)}
-                className={`relative p-5 rounded-2xl text-left transition-all duration-250 group animate-fade-in delay-${(index + 1) * 50}`}
-                style={isSelected ? {
-                  background: 'rgba(99,102,241,0.1)',
-                  border: '1px solid rgba(99,102,241,0.4)',
-                  transform: 'scale(1.02)',
-                  boxShadow: `0 8px 32px ${glow}`,
-                } : {
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  transform: 'scale(1)',
+                className={`animate-fade-in delay-${(index + 1) * 50}`}
+                style={{
+                  background: isSelected ? 'rgba(240,192,48,0.05)' : '#0f1720',
+                  border: isSelected ? '1px solid #f0c030' : '1px solid #1d2d3f',
+                  borderRadius: 9,
+                  padding: '14px 16px',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  position: 'relative',
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   if (!isSelected) {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.15)';
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.05)';
+                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(240,192,48,0.30)';
                   }
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (!isSelected) {
-                    (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)';
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.03)';
+                    (e.currentTarget as HTMLElement).style.borderColor = '#1d2d3f';
                   }
                 }}
               >
                 {isSelected && (
-                  <div className="absolute top-3 right-3 animate-scale-in">
-                    <CheckCircle size={16} className="text-indigo-400" />
+                  <div style={{ position: 'absolute', top: 10, right: 10 }} className="animate-scale-in">
+                    <CheckCircle size={14} style={{ color: '#f0c030' }} />
                   </div>
                 )}
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 text-white transition-transform duration-300 group-hover:scale-110"
-                  style={{ background: gradient, boxShadow: `0 4px 16px ${glow}` }}
-                >
-                  {icon}
+                {/* Tag + icon */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <span
+                    style={{
+                      fontSize: 8,
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      fontFamily: 'JetBrains Mono, monospace',
+                      color: isSelected ? '#f0c030' : '#3d5570',
+                      background: isSelected ? 'rgba(240,192,48,0.10)' : 'rgba(61,85,112,0.15)',
+                      border: `1px solid ${isSelected ? 'rgba(240,192,48,0.20)' : 'rgba(61,85,112,0.20)'}`,
+                      padding: '1px 5px',
+                      borderRadius: 3,
+                    }}
+                  >
+                    {tag}
+                  </span>
+                  <span style={{ color: isSelected ? '#f0c030' : '#7890a8' }}>
+                    {icon}
+                  </span>
                 </div>
-                <p className={`font-bold text-sm mb-1.5 transition-colors ${isSelected ? 'text-indigo-300' : 'text-white'}`}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: isSelected ? '#e2ecf5' : '#e2ecf5', margin: '0 0 4px' }}>
                   {label}
                 </p>
-                <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
+                <p style={{ fontSize: 10, color: '#3d5570', margin: 0, lineHeight: 1.5 }}>
+                  {description}
+                </p>
               </button>
             );
           })}
@@ -175,21 +162,23 @@ export const OnboardingPage: React.FC = () => {
 
         {/* Privacy notice */}
         <div
-          className="rounded-2xl p-4 mb-6 animate-fade-in delay-400"
           style={{
-            background: 'rgba(16,185,129,0.05)',
-            border: '1px solid rgba(16,185,129,0.15)',
+            background: '#0b1018',
+            borderLeft: '3px solid #4f9eff',
+            borderRadius: '0 7px 7px 0',
+            padding: '12px 16px',
+            marginBottom: 20,
           }}
+          className="animate-fade-in delay-400"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <Lock size={13} className="text-emerald-400" />
-            <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">What Nexora accesses</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {ACCESS_POINTS.map(({ text, ok }) => (
-              <div key={text} className="flex items-start gap-2 text-xs text-slate-500 leading-relaxed">
-                <span className="text-emerald-500 flex-shrink-0 mt-0.5">{ok ? '✓' : '✗'}</span>
-                {text}
+          <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.13em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace', color: '#4f9eff', margin: '0 0 8px' }}>
+            WHAT NEXORA ACCESSES
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 16px' }}>
+            {ACCESS_POINTS.map(point => (
+              <div key={point} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                <span style={{ color: '#40c070', fontSize: 10, flexShrink: 0, marginTop: 1 }}>✓</span>
+                <span style={{ fontSize: 10, color: '#3d5570', lineHeight: 1.5 }}>{point}</span>
               </div>
             ))}
           </div>
@@ -200,24 +189,32 @@ export const OnboardingPage: React.FC = () => {
           id="onboarding-continue-btn"
           onClick={handleContinue}
           disabled={!selectedRole || isLoading}
-          className="w-full btn-primary flex items-center justify-center gap-2.5 py-4 text-base font-bold disabled:opacity-35 disabled:cursor-not-allowed"
+          className="btn-gold"
+          style={{
+            width: '100%',
+            justifyContent: 'center',
+            fontSize: 14,
+            padding: '13px 22px',
+            opacity: (!selectedRole || isLoading) ? 0.35 : 1,
+            cursor: (!selectedRole || isLoading) ? 'not-allowed' : 'pointer',
+          }}
         >
           {isLoading ? (
             <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div style={{ width: 14, height: 14, border: '2px solid rgba(8,12,18,0.3)', borderTopColor: '#080c12', borderRadius: '50%' }} className="animate-spin" />
               Setting up your dashboard…
             </>
           ) : (
             <>
-              Continue to Dashboard
-              <ArrowRight size={18} className={`transition-transform duration-200 ${selectedRole ? 'translate-x-0' : ''}`} />
+              Continue to Dashboard →
+              <ArrowRight size={16} />
             </>
           )}
         </button>
 
         {selectedRole && !isLoading && (
-          <p className="text-center text-xs text-slate-600 mt-3 animate-fade-in">
-            Selected: <span className="text-indigo-400 font-semibold">{ROLES.find(r => r.role === selectedRole)?.label}</span> · You can change this in Settings anytime
+          <p style={{ textAlign: 'center', fontSize: 10, color: '#3d5570', marginTop: 10 }} className="animate-fade-in">
+            Selected: <span style={{ color: '#f0c030', fontWeight: 600 }}>{ROLES.find(r => r.role === selectedRole)?.label}</span> · You can change this in Settings
           </p>
         )}
       </div>

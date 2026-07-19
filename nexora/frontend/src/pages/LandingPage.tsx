@@ -1,52 +1,26 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useSearchParams } from 'react-router-dom';
-import { Zap, Brain, Bell, Shield, Mail, ArrowRight, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle, AlertTriangle, X, Zap } from 'lucide-react';
+import { CategoryTag } from '../components/common/CategoryTag';
+import { PriorityBars } from '../components/common/PriorityBars';
 
-const FEATURES = [
-  {
-    icon: Brain,
-    title: 'Nexora Brain',
-    desc: 'Ask anything about your past emails in plain English. Get instant, accurate answers.',
-    color: 'from-indigo-500 to-violet-600',
-    glow: 'rgba(99,102,241,0.4)',
-    delay: 'delay-100',
-  },
-  {
-    icon: Bell,
-    title: 'Smart Alerts',
-    desc: 'Role-aware notifications for deadlines, placements & hackathons — nothing else.',
-    color: 'from-orange-500 to-red-500',
-    glow: 'rgba(249,115,22,0.4)',
-    delay: 'delay-200',
-  },
-  {
-    icon: Mail,
-    title: 'AI Classification',
-    desc: 'Every email auto-categorized, prioritized, and actionable — instantly.',
-    color: 'from-emerald-500 to-teal-500',
-    glow: 'rgba(16,185,129,0.4)',
-    delay: 'delay-300',
-  },
-  {
-    icon: Shield,
-    title: 'Private & Secure',
-    desc: 'Read-only Gmail access. Tokens encrypted with AES-256. Zero emails stored as plain text.',
-    color: 'from-blue-500 to-cyan-500',
-    glow: 'rgba(59,130,246,0.4)',
-    delay: 'delay-400',
-  },
+// Sample inbox preview data
+const PREVIEW_EMAILS = [
+  { sender: 'Dr. Sarah Chen', subject: 'Assignment 4 deadline extended to Friday 11:59 PM', category: 'ASSIGNMENT', priority: 'HIGH' as const, borderColor: '#f05050' },
+  { sender: 'Devfolio', subject: 'Smart India Hackathon registrations close in 48h', category: 'HACKATHON', priority: 'HIGH' as const, borderColor: '#f05050' },
+  { sender: 'TCS Nextstep', subject: 'Interview shortlist - Round 2 confirmed for you', category: 'PLACEMENT', priority: 'HIGH' as const, borderColor: '#f05050' },
+  { sender: 'HOD Office', subject: 'Mandatory attendance policy change effective Monday', category: 'ANNOUNCEMENT', priority: 'MEDIUM' as const, borderColor: '#f0c030' },
 ];
 
 const TRUST_POINTS = [
-  'No emails stored in plain text',
   'Read-only Gmail access',
   'AES-256 token encryption',
+  'Role-aware AI · Student-first',
 ];
 
 export const LandingPage: React.FC = () => {
   const { handleGoogleLogin } = useAuth();
-  const orbRef = useRef<HTMLDivElement>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const authError = searchParams.get('auth_error');
   const [showErrorBanner, setShowErrorBanner] = useState(!!authError);
@@ -57,268 +31,368 @@ export const LandingPage: React.FC = () => {
     setSearchParams(searchParams, { replace: true });
   };
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!orbRef.current) return;
-      const x = (e.clientX / window.innerWidth - 0.5) * 30;
-      const y = (e.clientY / window.innerHeight - 0.5) * 30;
-      orbRef.current.style.transform = `translate(${x}px, ${y}px)`;
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
-      {/* Animated background orbs */}
-      <div className="fixed inset-0 pointer-events-none select-none">
-        <div
-          ref={orbRef}
-          className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-20"
-          style={{
-            background: 'radial-gradient(circle, #6366f1 0%, #7c3aed 50%, transparent 70%)',
-            filter: 'blur(60px)',
-            transition: 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          }}
-        />
-        <div
-          className="absolute -bottom-32 -right-32 w-80 h-80 rounded-full opacity-15"
-          style={{
-            background: 'radial-gradient(circle, #7c3aed 0%, #4f46e5 50%, transparent 70%)',
-            filter: 'blur(60px)',
-            animation: 'float 8s ease-in-out infinite',
-          }}
-        />
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-5"
-          style={{
-            background: 'conic-gradient(from 0deg, #6366f1, #7c3aed, #ec4899, #6366f1)',
-            filter: 'blur(80px)',
-            animation: 'spin-slow 20s linear infinite',
-          }}
-        />
-      </div>
-
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#080c12',
+        backgroundImage: 'radial-gradient(circle, #1a2535 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {/* Navbar */}
-      <nav className="relative flex items-center justify-between px-8 py-5 border-b border-white/5 backdrop-blur-sm">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-nexora-gradient flex items-center justify-center animate-glow shadow-lg shadow-indigo-900/40">
-            <Zap size={15} className="text-white" />
+      <nav
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 28px',
+          height: 56,
+          borderBottom: '1px solid #1d2d3f',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              width: 30,
+              height: 30,
+              background: '#f0c030',
+              borderRadius: 7,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Zap size={14} style={{ color: '#080c12' }} />
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">Nexora</span>
+          <span style={{ fontWeight: 800, color: '#e2ecf5', fontSize: 16, letterSpacing: '-0.01em' }}>
+            Nexora
+          </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {/* DEV-only bypass — never visible in production build */}
           {import.meta.env.DEV && (
             <a
               id="nav-bypass-btn"
               href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2 mr-3"
+              style={{ fontSize: 11, color: '#4f9eff', fontWeight: 600, textDecoration: 'underline' }}
             >
-              Bypass Login
+              🔧 Dev bypass
             </a>
           )}
           <button
             id="landing-signin-btn"
             onClick={handleGoogleLogin}
-            className="btn-ghost text-sm"
+            style={{
+              padding: '7px 16px',
+              background: 'transparent',
+              border: '1px solid #1d2d3f',
+              borderRadius: 7,
+              color: '#7890a8',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.borderColor = '#253447';
+              (e.currentTarget as HTMLElement).style.color = '#e2ecf5';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.borderColor = '#1d2d3f';
+              (e.currentTarget as HTMLElement).style.color = '#7890a8';
+            }}
           >
             Sign in
-          </button>
-          <button
-            id="landing-cta-nav-btn"
-            onClick={handleGoogleLogin}
-            className="btn-primary text-sm py-2 px-4"
-          >
-            Get Started →
           </button>
         </div>
       </nav>
 
-      {/* Auth Error Banner */}
+      {/* Error banner */}
       {showErrorBanner && (
         <div
-          className="relative z-10 mx-6 mt-4 rounded-2xl px-5 py-4 flex items-start gap-4 animate-fade-in"
           style={{
-            background: 'rgba(239,68,68,0.08)',
-            border: '1px solid rgba(239,68,68,0.3)',
-            backdropFilter: 'blur(12px)',
+            margin: '16px 28px 0',
+            background: 'rgba(240,80,80,0.08)',
+            border: '1px solid rgba(240,80,80,0.30)',
+            borderRadius: 9,
+            padding: '12px 16px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
           }}
+          className="animate-fade-in"
         >
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-            style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}
-          >
-            <AlertTriangle size={16} className="text-red-400" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-red-300 mb-1">
-              {authError === 'access_denied'
-                ? 'Google Sign-In Cancelled'
-                : authError === 'redirect_uri_mismatch'
-                ? 'OAuth Configuration Error'
-                : 'Google Sign-In Failed'}
+          <AlertTriangle size={16} style={{ color: '#f05050', flexShrink: 0, marginTop: 1 }} />
+          <div style={{ flex: 1 }}>
+            <p style={{ color: '#f05050', fontWeight: 600, fontSize: 13, margin: '0 0 4px' }}>
+              {authError === 'access_denied' ? 'Sign-In Cancelled' : 'Sign-In Failed'}
             </p>
-            <p className="text-xs text-red-400/80 leading-relaxed mb-2">
+            <p style={{ color: 'rgba(240,80,80,0.7)', fontSize: 11, margin: 0 }}>
               {authError === 'access_denied'
-                ? 'You cancelled the Google sign-in. Click "Continue with Google" to try again.'
-                : authError === 'redirect_uri_mismatch'
-                ? 'The redirect URI is not authorized in Google Cloud Console. Contact the app administrator.'
-                : `Sign-in was blocked by Google (${authError}). Please try again or use a different account.`}
+                ? 'You cancelled the Google sign-in. Click "Connect Gmail" to try again.'
+                : `Sign-in was blocked by Google (${authError}). Please try again.`}
             </p>
-            <button
-              onClick={handleGoogleLogin}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2"
-            >
-              Try Again →
-            </button>
           </div>
           <button
             onClick={dismissError}
-            className="p-1.5 text-red-500/60 hover:text-red-400 transition-colors rounded-lg hover:bg-red-500/10 flex-shrink-0"
+            style={{ color: '#f05050', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
             <X size={14} />
           </button>
         </div>
       )}
 
-
-      {/* Hero */}
-      <section className="relative flex-1 flex flex-col items-center justify-center px-6 py-20 text-center">
-        {/* Badge */}
-        <div className="animate-fade-in inline-flex items-center gap-2 px-4 py-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-medium mb-8 backdrop-blur-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse-soft" />
-          AI-powered email intelligence · Built for students
-        </div>
-
-        <h1 className="animate-fade-in delay-100 text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.95] mb-6 tracking-tight text-balance">
-          Your inbox,<br />
-          <span className="gradient-text text-glow">finally intelligent.</span>
-        </h1>
-
-        <p className="animate-fade-in delay-200 text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-          Nexora reads your Gmail, classifies every email with AI, surfaces deadlines
-          and action items, and answers questions about your inbox in plain English.
-          <span className="text-slate-300 font-medium"> Never miss a deadline again.</span>
-        </p>
-
-        <div className="animate-fade-in delay-300 flex flex-col sm:flex-row items-center gap-4 justify-center mb-4">
-          <button
-            id="hero-cta-btn"
-            onClick={handleGoogleLogin}
-            className="btn-primary flex items-center gap-3 text-base px-8 py-4 animate-glow"
+      {/* Hero — 2-column grid */}
+      <div
+        style={{
+          flex: 1,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: 60,
+          alignItems: 'center',
+          maxWidth: 1100,
+          margin: '0 auto',
+          padding: '60px 40px',
+          width: '100%',
+        }}
+      >
+        {/* LEFT COLUMN */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }} className="animate-fade-in">
+          {/* Eyebrow */}
+          <span
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: '0.20em',
+              textTransform: 'uppercase',
+              fontFamily: 'JetBrains Mono, monospace',
+              color: '#f0c030',
+            }}
           >
-            <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-              <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-            </svg>
-            Continue with Google
-          </button>
-          <a href="#features" className="btn-ghost flex items-center gap-2 text-base px-6 py-4">
-            See how it works <ArrowRight size={16} />
-          </a>
-        </div>
+            AI · EMAIL · INTELLIGENCE
+          </span>
 
-        {/* Developer Bypass Option — DEV only */}
-        {import.meta.env.DEV && (
-          <div className="animate-fade-in delay-300 mb-8">
-            <a
-              id="developer-bypass-btn"
-              href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold transition-colors underline underline-offset-2"
-            >
-              🔧 Developer Bypass (Local Mock Login)
-            </a>
-          </div>
-        )}
+          {/* H1 */}
+          <h1
+            style={{
+              fontSize: 'clamp(30px, 4vw, 42px)',
+              fontWeight: 800,
+              letterSpacing: '-0.03em',
+              color: '#e2ecf5',
+              lineHeight: 1.1,
+              margin: 0,
+            }}
+          >
+            Stop reading
+            <br />
+            the noise.
+            <br />
+            <span style={{ color: '#f0c030' }}>Act on what matters.</span>
+          </h1>
 
-        {/* Trust signals */}
-        <div className="animate-fade-in delay-400 flex flex-wrap items-center justify-center gap-4">
-          {TRUST_POINTS.map((point) => (
-            <div key={point} className="flex items-center gap-1.5 text-xs text-slate-500">
-              <CheckCircle size={12} className="text-emerald-500 flex-shrink-0" />
-              {point}
-            </div>
-          ))}
-        </div>
-
-        {/* Feature grid */}
-        <div
-          id="features"
-          className="mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-5xl"
-        >
-          {FEATURES.map(({ icon: Icon, title, desc, color, glow, delay }) => (
-            <div
-              key={title}
-              className={`animate-fade-in-up ${delay} glass rounded-2xl p-5 text-left group cursor-default`}
-              style={{ '--glow-color': glow } as React.CSSProperties}
-            >
-              <div
-                className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-4 transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg`}
-                style={{ boxShadow: `0 4px 20px ${glow}` }}
-              >
-                <Icon size={20} className="text-white" />
-              </div>
-              <h3 className="font-bold text-white mb-2 text-sm leading-snug">{title}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">{desc}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Comparison section */}
-        <div className="mt-20 max-w-3xl w-full animate-fade-in-up delay-500">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 mb-3">Why Nexora?</p>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-balance">
-            Not another generic AI tool.
-          </h2>
-          <p className="text-slate-500 mb-10 leading-relaxed">
-            Unlike Gmail Smart Compose or Microsoft Copilot, Nexora knows your role and prioritizes accordingly.
+          {/* Body */}
+          <p
+            style={{
+              fontSize: 13,
+              color: '#7890a8',
+              lineHeight: 1.7,
+              maxWidth: 300,
+              margin: 0,
+            }}
+          >
+            Nexora reads every email in your Gmail inbox, classifies it with AI,
+            and surfaces only what needs your attention — deadlines, placements,
+            hackathons, attendance.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { label: 'Gmail Smart Compose', feature: 'Response suggestions only', emoji: '✦', bad: true },
-              { label: 'Microsoft Copilot', feature: 'Generic AI, no student context', emoji: '✦', bad: true },
-              { label: 'Nexora', feature: 'Role-aware · Deadlines · Brain Q&A', emoji: '⚡', bad: false },
-            ].map(({ label, feature, emoji, bad }) => (
-              <div
-                key={label}
-                className={`p-5 rounded-2xl border transition-all duration-300 ${
-                  bad
-                    ? 'bg-white/2 border-white/6 opacity-60'
-                    : 'bg-indigo-600/8 border-indigo-500/30 shadow-lg shadow-indigo-900/20'
-                }`}
+
+          {/* CTA */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <button
+              id="hero-cta-btn"
+              onClick={handleGoogleLogin}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '11px 22px',
+                background: '#f0c030',
+                color: '#080c12',
+                fontWeight: 800,
+                fontSize: 14,
+                borderRadius: 8,
+                border: 'none',
+                cursor: 'pointer',
+                transition: 'background 0.15s ease',
+                width: 'fit-content',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#f5d050'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#f0c030'; }}
+            >
+              {/* Google icon */}
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path fill="#080c12" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#080c12" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#080c12" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#080c12" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Connect Gmail
+            </button>
+
+            {/* Trust signals */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {TRUST_POINTS.map((point) => (
+                <div key={point} style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <CheckCircle size={11} style={{ color: '#40c070', flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, color: '#3d5570' }}>{point}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN — Inbox preview card */}
+        <div className="animate-slide-right" style={{ position: 'relative' }}>
+          <div
+            style={{
+              background: '#0f1720',
+              border: '1px solid #1d2d3f',
+              borderRadius: 10,
+              overflow: 'hidden',
+            }}
+          >
+            {/* Card header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '10px 14px',
+                borderBottom: '1px solid #1d2d3f',
+              }}
+            >
+              {/* Pulsing gold dot */}
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  background: '#f0c030',
+                  flexShrink: 0,
+                  animation: 'pulse-soft 2s ease-in-out infinite',
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: 10,
+                  color: '#7890a8',
+                  fontWeight: 500,
+                }}
               >
-                <p className={`text-2xl mb-3 ${bad ? '' : ''}`}>{emoji}</p>
-                <p className={`font-bold text-sm mb-1.5 ${bad ? 'text-slate-400' : 'text-indigo-300'}`}>{label}</p>
-                <p className="text-xs text-slate-500 leading-relaxed">{feature}</p>
-                {!bad && (
-                  <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
-                    <CheckCircle size={12} /> Best choice for students
-                  </div>
-                )}
+                nexora.ai
+              </span>
+              <span style={{ marginLeft: 'auto', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: '#3d5570' }}>
+                73 emails ·{' '}
+                <span style={{ color: '#f0c030', fontWeight: 700 }}>4</span>
+                {' '}need action
+              </span>
+            </div>
+
+            {/* Email rows */}
+            {PREVIEW_EMAILS.map((email, i) => (
+              <div
+                key={i}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 14px',
+                  borderLeft: `3px solid ${email.borderColor}`,
+                  borderBottom: i < PREVIEW_EMAILS.length - 1 ? '1px solid #1d2d3f' : 'none',
+                }}
+              >
+                <span
+                  style={{
+                    minWidth: 80,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: '#e2ecf5',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {email.sender}
+                </span>
+                <span
+                  style={{
+                    flex: 1,
+                    fontSize: 11,
+                    color: '#7890a8',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {email.subject}
+                </span>
+                <CategoryTag category={email.category} />
+                <PriorityBars priority={email.priority} />
               </div>
             ))}
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: '8px 14px',
+                borderTop: '1px solid #1d2d3f',
+                fontFamily: 'JetBrains Mono, monospace',
+                fontSize: 9,
+                color: '#3d5570',
+              }}
+            >
+              -- filter -- 69 promotional &amp; low-priority emails hidden
+            </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Footer */}
-      <footer className="relative border-t border-white/5 py-8 px-8">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-nexora-gradient flex items-center justify-center">
-              <Zap size={11} className="text-white" />
-            </div>
-            <span className="text-sm font-semibold text-white">Nexora</span>
+      <footer
+        style={{
+          borderTop: '1px solid #1d2d3f',
+          padding: '16px 28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              width: 22,
+              height: 22,
+              background: '#f0c030',
+              borderRadius: 5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Zap size={11} style={{ color: '#080c12' }} />
           </div>
-          <p className="text-xs text-slate-600 text-center">
-            © 2025 Nexora · Communication Intelligence Platform · React + Spring Boot + Gemini AI
-          </p>
-          <div className="flex items-center gap-4 text-xs text-slate-600">
-            <span>Privacy</span>
-            <span>Terms</span>
-          </div>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#e2ecf5' }}>Nexora</span>
+        </div>
+        <p style={{ fontSize: 11, color: '#3d5570' }}>
+          © 2025 Nexora · AI Email Intelligence · React + Spring Boot
+        </p>
+        <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#3d5570' }}>
+          <span>Privacy</span>
+          <span>Terms</span>
         </div>
       </footer>
     </div>

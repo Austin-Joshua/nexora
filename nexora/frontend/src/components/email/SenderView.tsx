@@ -6,25 +6,12 @@ import { EmailDetail } from './EmailDetail';
 import { useEmailStore } from '../../store/emailStore';
 import { Mail, ArrowLeft, TrendingUp, User2, ChevronRight } from 'lucide-react';
 
-// ─── Colour palette cycling for sender avatars ───────────────────────────────
-const AVATAR_GRADIENTS = [
-  'linear-gradient(135deg,#6366f1,#7c3aed)',
-  'linear-gradient(135deg,#0ea5e9,#2563eb)',
-  'linear-gradient(135deg,#10b981,#059669)',
-  'linear-gradient(135deg,#f59e0b,#d97706)',
-  'linear-gradient(135deg,#ec4899,#db2777)',
-  'linear-gradient(135deg,#8b5cf6,#6d28d9)',
-  'linear-gradient(135deg,#14b8a6,#0d9488)',
-  'linear-gradient(135deg,#f97316,#ea580c)',
-];
-
 const rankColors = [
-  { bg: 'rgba(251,191,36,0.12)', border: 'rgba(251,191,36,0.3)', text: '#fbbf24', badge: '🥇' },
-  { bg: 'rgba(148,163,184,0.10)', border: 'rgba(148,163,184,0.25)', text: '#94a3b8', badge: '🥈' },
-  { bg: 'rgba(180,123,67,0.10)', border: 'rgba(180,123,67,0.25)', text: '#b47b43', badge: '🥉' },
+  { bg: 'rgba(240,192,48,0.10)', border: 'rgba(240,192,48,0.22)', text: '#f0c030', badge: '🥇' },
+  { bg: 'rgba(120,144,168,0.10)', border: 'rgba(120,144,168,0.22)', text: 'var(--t2)', badge: '🥈' },
+  { bg: 'rgba(180,123,67,0.10)', border: 'rgba(180,123,67,0.22)', text: '#b47b43', badge: '🥉' },
 ];
 
-// ─── SenderCard ───────────────────────────────────────────────────────────────
 interface SenderCardProps {
   sender: SenderSummary;
   rank: number;
@@ -32,7 +19,6 @@ interface SenderCardProps {
 }
 
 const SenderCard: React.FC<SenderCardProps> = ({ sender, rank, onClick }) => {
-  const gradient = AVATAR_GRADIENTS[rank % AVATAR_GRADIENTS.length];
   const initials = ((sender.senderName || sender.senderEmail)?.[0] ?? '?').toUpperCase();
   const rankStyle = rank < 3 ? rankColors[rank] : null;
 
@@ -40,82 +26,93 @@ const SenderCard: React.FC<SenderCardProps> = ({ sender, rank, onClick }) => {
     <button
       onClick={onClick}
       id={`sender-card-${rank}`}
-      className="w-full text-left group transition-all duration-200 rounded-2xl p-4 flex items-center gap-3"
       style={{
-        background: rankStyle ? rankStyle.bg : 'rgba(255,255,255,0.02)',
-        border: `1px solid ${rankStyle ? rankStyle.border : 'rgba(255,255,255,0.06)'}`,
+        width: '100%',
+        textAlign: 'left',
+        background: rankStyle ? rankStyle.bg : 'transparent',
+        border: `1px solid ${rankStyle ? rankStyle.border : 'var(--border)'}`,
+        borderRadius: 8,
+        padding: '10px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        cursor: 'pointer',
+        transition: 'all 0.15s ease',
       }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.background = rankStyle
-          ? rankStyle.bg
-          : 'rgba(255,255,255,0.05)';
-        (e.currentTarget as HTMLElement).style.borderColor = rankStyle
-          ? rankStyle.border
-          : 'rgba(99,102,241,0.25)';
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLElement).style.background = 'var(--s2)';
+        (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-b)';
       }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.background = rankStyle
-          ? rankStyle.bg
-          : 'rgba(255,255,255,0.02)';
-        (e.currentTarget as HTMLElement).style.borderColor = rankStyle
-          ? rankStyle.border
-          : 'rgba(255,255,255,0.06)';
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.background = rankStyle ? rankStyle.bg : 'transparent';
+        (e.currentTarget as HTMLElement).style.borderColor = rankStyle ? rankStyle.border : 'var(--border)';
       }}
     >
-      {/* Rank badge */}
-      <div className="flex-shrink-0 w-6 text-center">
+      {/* Rank Badge */}
+      <div style={{ flexShrink: 0, width: 20, textAlign: 'center' }}>
         {rank < 3 ? (
-          <span className="text-base leading-none">{rankColors[rank].badge}</span>
+          <span style={{ fontSize: 13 }}>{rankColors[rank].badge}</span>
         ) : (
-          <span className="text-xs font-black text-slate-600">#{rank + 1}</span>
+          <span style={{ fontSize: 9, fontFamily: 'JetBrains Mono, monospace', fontWeight: 700, color: 'var(--t3)' }}>
+            #{rank + 1}
+          </span>
         )}
       </div>
 
       {/* Avatar */}
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
-        style={{ background: gradient, boxShadow: `0 4px 14px rgba(0,0,0,0.25)` }}
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 6,
+          background: 'rgba(79,158,255,0.12)',
+          border: '1px solid rgba(79,158,255,0.25)',
+          color: '#4f9eff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 11,
+          fontWeight: 800,
+          flexShrink: 0,
+        }}
       >
         {initials}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-slate-200 truncate leading-tight">
+      {/* Details */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {sender.senderName || 'Unknown Sender'}
         </p>
-        <p className="text-[11px] text-slate-500 truncate mt-0.5">{sender.senderEmail}</p>
-        {sender.latestSubject && (
-          <p className="text-[11px] text-slate-600 truncate mt-0.5 italic">
-            "{sender.latestSubject}"
-          </p>
-        )}
+        <p style={{ fontSize: 9, color: 'var(--t3)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'JetBrains Mono, monospace' }}>
+          {sender.senderEmail}
+        </p>
       </div>
 
-      {/* Count pill + arrow */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      {/* Count */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         <div
-          className="flex items-center gap-1 px-2.5 py-1 rounded-xl"
           style={{
-            background: rankStyle ? `rgba(255,255,255,0.06)` : 'rgba(99,102,241,0.12)',
-            border: `1px solid ${rankStyle ? rankStyle.border : 'rgba(99,102,241,0.2)'}`,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            padding: '2px 6px',
+            background: 'rgba(79,158,255,0.08)',
+            border: '1px solid rgba(79,158,255,0.20)',
+            borderRadius: 4,
           }}
         >
-          <Mail size={10} className={rankStyle ? '' : 'text-indigo-400'} style={rankStyle ? { color: rankStyle.text } : undefined} />
-          <span
-            className="text-xs font-black"
-            style={{ color: rankStyle ? rankStyle.text : '#a5b4fc' }}
-          >
+          <Mail size={10} style={{ color: '#4f9eff' }} />
+          <span style={{ fontSize: 10, fontWeight: 700, color: '#4f9eff', fontFamily: 'JetBrains Mono, monospace' }}>
             {sender.emailCount}
           </span>
         </div>
-        <ChevronRight size={14} className="text-slate-600 group-hover:text-slate-400 transition-colors" />
+        <ChevronRight size={12} style={{ color: 'var(--t3)' }} />
       </div>
     </button>
   );
 };
 
-// ─── SenderEmailsPane ─────────────────────────────────────────────────────────
 interface SenderEmailsPaneProps {
   sender: SenderSummary;
   onBack: () => void;
@@ -133,48 +130,66 @@ const SenderEmailsPane: React.FC<SenderEmailsPaneProps> = ({ sender, onBack }) =
   const emails = data?.content ?? [];
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* Left: sender email list */}
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+      {/* List panel */}
       <div
-        className="w-96 flex-shrink-0 flex flex-col overflow-hidden border-r"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{
+          width: selectedEmail ? 280 : '100%',
+          flexShrink: 0,
+          borderRight: '1px solid var(--border)',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.25s ease',
+        }}
       >
-        {/* Header */}
-        <div
-          className="flex-shrink-0 px-4 py-4 border-b"
-          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
-        >
+        <div style={{ padding: 12, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-3 font-semibold"
+            className="btn-ghost"
+            style={{
+              fontSize: 10,
+              padding: '4px 8px',
+              marginBottom: 10,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
           >
-            <ArrowLeft size={12} /> Back to Senders
+            <ArrowLeft size={10} /> Back to Senders
           </button>
 
-          {/* Sender info header */}
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0"
-              style={{ background: AVATAR_GRADIENTS[0], boxShadow: '0 4px 16px rgba(99,102,241,0.3)' }}
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 6,
+                background: 'rgba(79,158,255,0.12)',
+                border: '1px solid rgba(79,158,255,0.25)',
+                color: '#4f9eff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 800,
+                flexShrink: 0,
+              }}
             >
               {((sender.senderName || sender.senderEmail)?.[0] ?? '?').toUpperCase()}
             </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-white truncate">{sender.senderName || 'Unknown'}</p>
-              <p className="text-xs text-slate-500 truncate">{sender.senderEmail}</p>
-            </div>
-            <div
-              className="ml-auto flex items-center gap-1 px-2.5 py-1 rounded-xl flex-shrink-0"
-              style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.2)' }}
-            >
-              <Mail size={10} className="text-indigo-400" />
-              <span className="text-xs font-black text-indigo-300">{sender.emailCount}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--t1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {sender.senderName || 'Unknown'}
+              </p>
+              <p style={{ fontSize: 9, color: 'var(--t3)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: 'JetBrains Mono, monospace' }}>
+                {sender.senderEmail}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Email list */}
-        <div className="flex-1 overflow-y-auto">
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           <EmailList
             emails={emails}
             isLoading={isLoading}
@@ -183,23 +198,33 @@ const SenderEmailsPane: React.FC<SenderEmailsPaneProps> = ({ sender, onBack }) =
         </div>
       </div>
 
-      {/* Right: email detail */}
-      <div className="flex-1 overflow-hidden">
+      {/* Detail panel */}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
         {selectedEmail ? (
-          <div className="h-full animate-slide-right">
+          <div style={{ height: '100%' }} className="animate-slide-right">
             <EmailDetail emailId={selectedEmail.id} onClose={() => setSelectedEmail(null)} />
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center animate-fade-in">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+            <div style={{ textAlign: 'center', margin: 'auto' }} className="animate-fade-in">
               <div
-                className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-5"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+                style={{
+                  width: 64,
+                  height: 64,
+                  background: 'var(--s1)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 14,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                }}
+                className="animate-float"
               >
-                <User2 size={32} className="text-slate-600" />
+                <User2 size={28} style={{ color: 'var(--t3)' }} />
               </div>
-              <p className="text-slate-300 font-bold text-base">Select an email to read</p>
-              <p className="text-slate-600 text-sm mt-1.5">
+              <p style={{ color: 'var(--t1)', fontWeight: 700, fontSize: 14, margin: '0 0 4px' }}>Select an email</p>
+              <p style={{ color: 'var(--t3)', fontSize: 11, margin: 0 }}>
                 Showing {emails.length} email{emails.length !== 1 ? 's' : ''} from this sender
               </p>
             </div>
@@ -210,7 +235,6 @@ const SenderEmailsPane: React.FC<SenderEmailsPaneProps> = ({ sender, onBack }) =
   );
 };
 
-// ─── SenderView (main export) ─────────────────────────────────────────────────
 export const SenderView: React.FC = () => {
   const [activeSender, setActiveSender] = useState<SenderSummary | null>(null);
   const { setSelectedEmail } = useEmailStore();
@@ -237,9 +261,9 @@ export const SenderView: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-4 space-y-3">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="h-16 skeleton rounded-2xl" style={{ animationDelay: `${i * 60}ms` }} />
+      <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="skeleton" style={{ height: 48 }} />
         ))}
       </div>
     );
@@ -247,44 +271,51 @@ export const SenderView: React.FC = () => {
 
   if (senders.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center px-6 py-12 animate-fade-in">
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
         <div
-          className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 12,
+            background: 'var(--s1)',
+            border: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}
         >
-          <TrendingUp size={24} className="text-slate-600" />
+          <TrendingUp size={24} style={{ color: 'var(--t3)' }} />
         </div>
-        <p className="text-slate-400 font-bold mb-1">No sender data yet</p>
-        <p className="text-slate-600 text-sm">Sync your inbox first to see sender statistics</p>
+        <p style={{ color: 'var(--t1)', fontWeight: 700, fontSize: 14, margin: '0 0 4px' }}>No sender data yet</p>
+        <p style={{ color: 'var(--t3)', fontSize: 11, margin: 0 }}>Sync your inbox first to see sender stats</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full overflow-hidden">
-      {/* Sender leaderboard panel */}
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
       <div
-        className="w-96 flex-shrink-0 flex flex-col overflow-hidden border-r"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{
+          width: 320,
+          flexShrink: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          borderRight: '1px solid var(--border)',
+          background: '#060a0f',
+        }}
       >
-        {/* Header */}
-        <div
-          className="flex-shrink-0 px-4 py-3 border-b"
-          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <TrendingUp size={13} className="text-indigo-400" />
-            <span className="text-xs font-bold uppercase tracking-widest text-slate-500">
-              Top Senders
-            </span>
+        <div style={{ padding: 12, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+            <TrendingUp size={12} style={{ color: '#4f9eff' }} />
+            <span className="section-label">TOP SENDERS</span>
           </div>
-          <p className="text-[10px] text-slate-600">
-            {senders.length} unique sender{senders.length !== 1 ? 's' : ''} · click to browse emails
-          </p>
+          <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>
+            {senders.length} unique senders · click to browse
+          </span>
         </div>
 
-        {/* Scrollable list */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {senders.map((sender, i) => (
             <SenderCard
               key={sender.senderEmail}
@@ -296,18 +327,27 @@ export const SenderView: React.FC = () => {
         </div>
       </div>
 
-      {/* Right panel: empty state */}
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center animate-fade-in px-6">
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }} className="animate-fade-in">
           <div
-            className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-5"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+            style={{
+              width: 64,
+              height: 64,
+              background: 'var(--s1)',
+              border: '1px solid var(--border)',
+              borderRadius: 14,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+            }}
+            className="animate-float"
           >
-            <User2 size={32} className="text-slate-600" />
+            <User2 size={28} style={{ color: 'var(--t3)' }} />
           </div>
-          <p className="text-slate-300 font-bold text-base">Select a sender</p>
-          <p className="text-slate-600 text-sm mt-1.5">
-            Choose from the leaderboard on the left to browse their emails
+          <p style={{ color: 'var(--t1)', fontWeight: 700, fontSize: 14, margin: '0 0 4px' }}>Select a sender</p>
+          <p style={{ color: 'var(--t3)', fontSize: 11, margin: 0 }}>
+            Choose from the leaderboard on the left
           </p>
         </div>
       </div>

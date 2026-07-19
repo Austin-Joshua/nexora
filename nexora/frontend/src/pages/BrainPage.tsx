@@ -3,7 +3,7 @@ import { AppShell } from '../components/layout/AppShell';
 import { BrainChat } from '../components/brain/BrainChat';
 import { brainApi } from '../api/brainApi';
 import type { BrainConversation } from '../types/Brain';
-import { History, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { History, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const formatDate = (dateStr?: string) => {
   if (!dateStr) return '';
@@ -23,47 +23,55 @@ export const BrainPage: React.FC = () => {
 
   return (
     <AppShell title="Nexora Brain" subtitle="Natural language Q&A over your emails">
-      <div className="flex h-full overflow-hidden relative">
+      <div style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
         {/* History sidebar */}
         <div
-          className="flex-shrink-0 border-r transition-all duration-300 overflow-hidden flex flex-col"
           style={{
-            width: historyOpen ? '240px' : '0px',
-            borderColor: historyOpen ? 'rgba(255,255,255,0.06)' : 'transparent',
-            background: 'rgba(5,8,20,0.6)',
-            backdropFilter: 'blur(16px)',
+            flexShrink: 0,
+            transition: 'width 0.25s ease',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            width: historyOpen ? 240 : 0,
+            borderRight: historyOpen ? '1px solid var(--border)' : 'none',
+            background: '#060a0f',
           }}
         >
           {historyOpen && (
             <>
               <div
-                className="flex items-center gap-2 px-4 py-3 border-b flex-shrink-0"
-                style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 14px',
+                  borderBottom: '1px solid var(--border)',
+                  flexShrink: 0,
+                }}
               >
-                <History size={13} className="text-indigo-400" />
-                <span className="text-xs font-bold text-white">Past Conversations</span>
+                <History size={12} style={{ color: '#4f9eff' }} />
+                <span className="section-label">PAST QUERIES</span>
               </div>
-              <div className="flex-1 overflow-y-auto p-2 space-y-1">
+              <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {conversations.length === 0 ? (
-                  <div className="text-center text-slate-600 text-[11px] p-4">No history yet</div>
+                  <div style={{ textAlign: 'center', color: 'var(--t3)', fontSize: 11, padding: 16 }}>No history yet</div>
                 ) : conversations.map((conv) => (
                   <div
                     key={conv.id}
-                    className="p-2.5 rounded-xl cursor-default group transition-all duration-150 hover:bg-white/4"
-                    style={{ border: '1px solid transparent' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.2)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'transparent')}
+                    style={{
+                      padding: 10,
+                      borderRadius: 6,
+                      background: 'var(--s1)',
+                      border: '1px solid var(--border)',
+                    }}
                   >
-                    <p className="text-[11px] font-medium text-slate-300 leading-snug line-clamp-2">
+                    <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--t1)', margin: '0 0 4px', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {conv.userQuery}
                     </p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Clock size={9} className="text-slate-600" />
-                      <span className="text-[9px] text-slate-600">{formatDate(conv.createdAt)}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--t3)', fontSize: 9 }}>
+                      <Clock size={8} />
+                      <span>{formatDate(conv.createdAt)}</span>
                     </div>
-                    <p className="text-[10px] text-slate-600 mt-1 line-clamp-1 italic">
-                      {conv.aiResponse}
-                    </p>
                   </div>
                 ))}
               </div>
@@ -74,21 +82,32 @@ export const BrainPage: React.FC = () => {
         {/* Toggle button */}
         <button
           onClick={() => setHistoryOpen(o => !o)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-5 h-10 rounded-r-lg transition-all duration-200 hover:bg-indigo-500/20"
           style={{
-            background: 'rgba(15,23,42,0.8)',
-            border: '1px solid rgba(99,102,241,0.2)',
+            position: 'absolute',
+            left: historyOpen ? 240 : 0,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 10,
+            width: 14,
+            height: 38,
+            borderRadius: '0 6px 6px 0',
+            background: 'var(--s1)',
+            border: '1px solid var(--border)',
             borderLeft: 'none',
-            color: '#818cf8',
-            left: historyOpen ? '240px' : '0px',
+            color: 'var(--t3)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'left 0.25s ease',
           }}
           title={historyOpen ? 'Close history' : 'Open history'}
         >
-          {historyOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+          {historyOpen ? <ChevronLeft size={10} /> : <ChevronRight size={10} />}
         </button>
 
         {/* Main chat */}
-        <div className="flex-1 min-w-0 overflow-hidden">
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
           <BrainChat />
         </div>
       </div>

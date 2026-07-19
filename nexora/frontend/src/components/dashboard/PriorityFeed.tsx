@@ -2,7 +2,10 @@ import React from 'react';
 import type { Email } from '../../types/Email';
 import { formatRelative } from '../../utils/formatDate';
 import { useNavigate } from 'react-router-dom';
-import { Flame, ArrowRight } from 'lucide-react';
+import { Flame } from 'lucide-react';
+import { CategoryTag } from '../common/CategoryTag';
+import { PriorityBars } from '../common/PriorityBars';
+import { CAT_COLORS } from '../../utils/catColors';
 
 interface PriorityFeedProps {
   emails: Email[];
@@ -12,32 +15,44 @@ export const PriorityFeed: React.FC<PriorityFeedProps> = ({ emails }) => {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="rounded-2xl overflow-hidden transition-all duration-300"
-      style={{
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.07)',
-      }}
-    >
+    <div className="surface" style={{ overflow: 'hidden' }}>
       {/* Header */}
       <div
-        className="flex items-center gap-2.5 px-4 py-3.5 border-b"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 14px',
+          borderBottom: '1px solid var(--border)',
+        }}
       >
         <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.2)' }}
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 6,
+            background: 'rgba(240,80,80,0.12)',
+            border: '1px solid rgba(240,80,80,0.20)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
         >
-          <Flame size={13} className="text-red-400" />
+          <Flame size={12} style={{ color: '#f05050' }} />
         </div>
-        <h3 className="font-bold text-white text-sm flex-1">Priority Inbox</h3>
+        <span className="section-label" style={{ flex: 1 }}>PRIORITY FEED</span>
         {emails.length > 0 && (
           <span
-            className="px-2 py-0.5 rounded-full text-[10px] font-bold"
             style={{
-              background: 'rgba(239,68,68,0.12)',
-              border: '1px solid rgba(239,68,68,0.25)',
-              color: '#fca5a5',
+              padding: '1px 7px',
+              background: 'rgba(240,80,80,0.12)',
+              border: '1px solid rgba(240,80,80,0.25)',
+              borderRadius: 9999,
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#f05050',
+              fontFamily: 'JetBrains Mono, monospace',
             }}
           >
             {emails.length} HIGH
@@ -48,56 +63,74 @@ export const PriorityFeed: React.FC<PriorityFeedProps> = ({ emails }) => {
       {/* List */}
       <div>
         {emails.length === 0 ? (
-          <div className="p-8 text-center">
-            <div className="text-3xl mb-2">🎉</div>
-            <p className="text-slate-500 text-sm font-medium">All clear!</p>
-            <p className="text-slate-600 text-xs mt-1">No high-priority emails right now</p>
+          <div style={{ padding: 32, textAlign: 'center' }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>🎉</div>
+            <p style={{ color: 'var(--t2)', fontSize: 12, fontWeight: 600, margin: '0 0 4px' }}>All clear!</p>
+            <p style={{ color: 'var(--t3)', fontSize: 10, margin: 0 }}>No high-priority emails right now</p>
           </div>
         ) : (
-          emails.map((email, i) => (
-            <div
-              key={email.id}
-              onClick={() => navigate(`/inbox?emailId=${email.id}`)}
-              className={`group px-4 py-3.5 cursor-pointer transition-all duration-200 hover:bg-white/[0.03] border-b animate-fade-in delay-${(i + 1) * 50}`}
-              style={{ borderColor: 'rgba(255,255,255,0.04)' }}
-            >
-              <div className="flex items-start gap-3">
+          emails.map((email, i) => {
+            const catColor = CAT_COLORS[email.category]?.color ?? '#3d5570';
+            const initial = (email.senderName || email.senderEmail)[0]?.toUpperCase();
+            return (
+              <div
+                key={email.id}
+                onClick={() => navigate(`/inbox?emailId=${email.id}`)}
+                className={`animate-fade-in delay-${(i + 1) * 50}`}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '10px 14px',
+                  borderLeft: '3px solid #f05050',
+                  borderBottom: '1px solid var(--border)',
+                  cursor: 'pointer',
+                  transition: 'background 0.15s ease',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--s1)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; }}
+              >
                 {/* Avatar */}
                 <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black text-white flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(239,68,68,0.6), rgba(99,102,241,0.6))',
-                    boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
+                    width: 28,
+                    height: 28,
+                    borderRadius: 5,
+                    background: catColor + '25',
+                    border: `1px solid ${catColor}30`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    color: catColor,
                   }}
                 >
-                  {(email.senderName || email.senderEmail)[0]?.toUpperCase()}
+                  {initial}
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <p className="text-sm font-semibold text-white truncate leading-tight">
-                      {email.senderName || email.senderEmail}
-                    </p>
-                    <span className="text-[10px] text-slate-600 flex-shrink-0 font-medium">
-                      {formatRelative(email.receivedAt)}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-400 truncate leading-snug">{email.subject}</p>
-                  {email.aiSummary && (
-                    <p className="text-[10px] text-slate-600 truncate mt-1 leading-snug">
-                      ✦ {email.aiSummary}
-                    </p>
-                  )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--t1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {email.senderName || email.senderEmail}
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--t2)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {email.subject}
+                  </p>
                 </div>
 
-                <ArrowRight
-                  size={13}
-                  className="text-slate-700 group-hover:text-indigo-400 flex-shrink-0 mt-1 transition-all duration-200 group-hover:translate-x-0.5"
-                />
+                {/* Right cluster */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <CategoryTag category={email.category} />
+                  <PriorityBars priority={email.priority as 'HIGH' | 'MEDIUM' | 'LOW'} />
+                  <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>
+                    {formatRelative(email.receivedAt)}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, type KeyboardEvent } from 'react';
-import { Send, Mic } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 interface BrainInputProps {
   onSend: (query: string) => void;
@@ -16,7 +16,6 @@ export const BrainInput: React.FC<BrainInputProps> = ({ onSend, isLoading }) => 
     if (!trimmed || isLoading) return;
     onSend(trimmed);
     setValue('');
-    // Reset height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
@@ -33,18 +32,22 @@ export const BrainInput: React.FC<BrainInputProps> = ({ onSend, isLoading }) => 
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 144) + 'px';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   };
 
   const canSend = !!value.trim() && !isLoading;
 
   return (
     <div
-      className="flex items-end gap-3 p-3 rounded-2xl transition-all duration-300"
       style={{
-        background: focused ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.03)',
-        border: focused ? '1px solid rgba(99,102,241,0.35)' : '1px solid rgba(255,255,255,0.08)',
-        boxShadow: focused ? '0 0 0 3px rgba(99,102,241,0.1), 0 8px 32px rgba(0,0,0,0.2)' : '0 4px 16px rgba(0,0,0,0.15)',
+        display: 'flex',
+        alignItems: 'flex-end',
+        gap: 10,
+        padding: '8px 12px',
+        background: 'var(--s1)',
+        border: `1px solid ${focused ? 'rgba(79,158,255,0.45)' : 'var(--border)'}`,
+        borderRadius: 8,
+        transition: 'border-color 0.15s ease',
       }}
     >
       <textarea
@@ -56,39 +59,45 @@ export const BrainInput: React.FC<BrainInputProps> = ({ onSend, isLoading }) => 
         onInput={handleInput}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        placeholder="Ask anything about your emails... (Enter to send, Shift+Enter for new line)"
+        placeholder="Ask Nexora Brain a question about your emails..."
         rows={1}
-        className="flex-1 bg-transparent text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none leading-relaxed"
-        style={{ minHeight: '24px', maxHeight: '144px', overflowY: 'auto' }}
+        style={{
+          flex: 1,
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          resize: 'none',
+          fontSize: 12,
+          color: 'var(--t1)',
+          minHeight: 20,
+          maxHeight: 120,
+          lineHeight: 1.5,
+          fontFamily: 'inherit',
+          padding: 0,
+        }}
         disabled={isLoading}
       />
-
-      <div className="flex items-center gap-1.5 flex-shrink-0">
-        <button
-          className="p-2 text-slate-700 hover:text-slate-400 rounded-lg transition-colors duration-200"
-          title="Voice input (coming soon)"
-          disabled
-        >
-          <Mic size={15} />
-        </button>
-
-        <button
-          id="brain-send-btn"
-          onClick={handleSend}
-          disabled={!canSend}
-          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
-          style={{
-            background: canSend
-              ? 'linear-gradient(135deg, #6366f1, #7c3aed)'
-              : 'rgba(255,255,255,0.06)',
-            boxShadow: canSend ? '0 4px 16px rgba(99,102,241,0.4)' : 'none',
-            transform: canSend ? undefined : undefined,
-          }}
-          title="Send message"
-        >
-          <Send size={15} className={canSend ? 'text-white' : 'text-slate-500'} />
-        </button>
-      </div>
+      <button
+        id="brain-send-btn"
+        onClick={handleSend}
+        disabled={!canSend}
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: 6,
+          border: 'none',
+          background: canSend ? 'var(--gold)' : 'var(--border)',
+          color: canSend ? '#080c12' : 'var(--t3)',
+          cursor: canSend ? 'pointer' : 'not-allowed',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          transition: 'all 0.15s ease',
+        }}
+      >
+        <Send size={12} />
+      </button>
     </div>
   );
 };

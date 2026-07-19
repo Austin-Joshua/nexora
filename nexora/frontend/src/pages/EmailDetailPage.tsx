@@ -14,19 +14,29 @@ export const EmailDetailPage: React.FC = () => {
   if (!emailId || isNaN(emailId)) {
     return (
       <AppShell title="Email" subtitle="Email not found">
-        <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 16, padding: 32, textAlign: 'center' }}>
           <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center"
-            style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 12,
+              background: 'var(--s1)',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 24,
+            }}
           >
-            <span className="text-3xl">📭</span>
+            📭
           </div>
-          <p className="text-slate-300 font-bold">Invalid email ID</p>
+          <p style={{ color: 'var(--t1)', fontWeight: 700 }}>Invalid email ID</p>
           <button
             onClick={() => navigate('/inbox')}
-            className="flex items-center gap-2 text-sm text-indigo-400 hover:text-indigo-300 transition-colors font-semibold"
+            className="btn-ghost"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
           >
-            <ArrowLeft size={14} /> Back to Inbox
+            <ArrowLeft size={12} /> Back to Inbox
           </button>
         </div>
       </AppShell>
@@ -35,24 +45,36 @@ export const EmailDetailPage: React.FC = () => {
 
   return (
     <AppShell title="Email Detail" subtitle="Full email view">
-      <div className="h-full flex flex-col">
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Back breadcrumb */}
         <div
-          className="flex-shrink-0 px-5 py-3 border-b flex items-center gap-2"
-          style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+          style={{
+            flexShrink: 0,
+            padding: '10px 14px',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
         >
           <button
             onClick={handleClose}
-            className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-400 font-semibold transition-colors duration-200 group"
+            className="btn-ghost"
+            style={{
+              fontSize: 10,
+              padding: '4px 8px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
           >
-            <ArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
-            Back
+            <ArrowLeft size={10} /> Back
           </button>
-          <span className="text-slate-700 text-xs">/</span>
-          <span className="text-xs text-slate-500 font-medium">Email #{emailId}</span>
+          <span style={{ color: 'var(--border)', fontSize: 11 }}>/</span>
+          <span style={{ fontSize: 10, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>EMAIL #{emailId}</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           <EmailDetail emailId={emailId} onClose={handleClose} />
         </div>
       </div>

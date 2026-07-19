@@ -71,8 +71,15 @@ public interface EmailRepository extends JpaRepository<Email, Long> {
     List<Object[]> countBySenderForUser(@Param("userId") Long userId);
 
     /**
+     * Fetch all email received dates for a user after a start date.
+     */
+    @Query("SELECT e.receivedAt FROM Email e WHERE e.user.id = :userId AND e.receivedAt >= :start")
+    List<LocalDateTime> findReceivedAtByUserIdAndReceivedAtAfter(@Param("userId") Long userId, @Param("start") LocalDateTime start);
+
+    /**
      * Fetch all emails from a specific sender for a given user, newest first.
      */
     Page<Email> findByUserIdAndSenderEmailOrderByReceivedAtDesc(
             Long userId, String senderEmail, Pageable pageable);
 }
+

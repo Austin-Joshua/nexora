@@ -1,7 +1,9 @@
-import React from 'react';
-import { CheckSquare, Clock, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckSquare, Clock, CheckCircle2, Check } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatDate';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import axiosInstance from '../../api/axiosInstance';
 
 interface ActionItem {
   id: number;
@@ -18,106 +20,177 @@ interface ActionItemListProps {
   actions: ActionItem[];
 }
 
-const TYPE_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
-  REGISTER: { color: '#fdba74', bg: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.25)' },
-  REPLY:    { color: '#93c5fd', bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.25)' },
-  SUBMIT:   { color: '#fca5a5', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.25)' },
-  UPLOAD:   { color: '#c4b5fd', bg: 'rgba(139,92,246,0.12)',  border: 'rgba(139,92,246,0.25)' },
-  REVIEW:   { color: '#67e8f9', bg: 'rgba(6,182,212,0.12)',   border: 'rgba(6,182,212,0.25)' },
-  ATTEND:   { color: '#6ee7b7', bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.25)' },
-  OTHER:    { color: '#94a3b8', bg: 'rgba(100,116,139,0.1)',  border: 'rgba(100,116,139,0.2)' },
-};
-
-const DEFAULT_CFG = TYPE_CONFIG.OTHER;
-
 export const ActionItemList: React.FC<ActionItemListProps> = ({ actions }) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [completing, setCompleting] = useState<Set<number>>(new Set());
+  const [localCompleted, setLocalCompleted] = useState<Set<number>>(new Set());
+
+  const handleComplete = async (e: React.MouseEvent, actionId: number) => {
+    e.stopPropagation();
+    if (completing.has(actionId)) return;
+    setCompleting(prev => new Set(prev).add(actionId));
+    // Optimistically hide it
+    setLocalCompleted(prev => new Set(prev).add(actionId));
+    try {
+      await axiosInstance.patch(`/api/email-actions/${actionId}/complete`);
+      // Invalidate dashboard query to refresh counts
+      queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+    } catch {
+      // Rollback on error
+      setLocalCompleted(prev => {
+        const s = new Set(prev);
+        s.delete(actionId);
+        return s;
+      });
+    } finally {
+      setCompleting(prev => {
+        const s = new Set(prev);
+        s.delete(actionId);
+        return s;
+      });
+    }
+  };
+
+  const visibleActions = actions.filter(a => !localCompleted.has(a.id));
 
   return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
-    >
+    <div className="surface" style={{ overflow: 'hidden' }}>
       {/* Header */}
       <div
-        className="flex items-center gap-2.5 px-4 py-3.5 border-b"
-        style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '10px 14px',
+          borderBottom: '1px solid var(--border)',
+        }}
       >
         <div
-          className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.2)' }}
+          style={{
+            width: 26,
+            height: 26,
+            borderRadius: 6,
+            background: 'rgba(240,192,48,0.12)',
+            border: '1px solid rgba(240,192,48,0.20)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
         >
-          <CheckSquare size={13} className="text-amber-400" />
+          <CheckSquare size={12} style={{ color: '#f0c030' }} />
         </div>
-        <h3 className="font-bold text-white text-sm flex-1">Pending Actions</h3>
-        {actions.length > 0 && (
+        <span className="section-label" style={{ flex: 1 }}>PENDING ACTIONS</span>
+        {visibleActions.length > 0 && (
           <span
-            className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-            style={{ background: 'rgba(234,179,8,0.12)', border: '1px solid rgba(234,179,8,0.25)', color: '#fde047' }}
+            style={{
+              padding: '1px 7px',
+              background: 'rgba(240,192,48,0.12)',
+              border: '1px solid rgba(240,192,48,0.25)',
+              borderRadius: 9999,
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#f0c030',
+              fontFamily: 'JetBrains Mono, monospace',
+            }}
           >
-            {actions.length}
+            {visibleActions.length}
           </span>
         )}
       </div>
 
       {/* List */}
-      <div className="max-h-72 overflow-y-auto">
-        {actions.length === 0 ? (
-          <div className="p-8 text-center">
-            <CheckCircle2 size={28} className="text-emerald-500 mx-auto mb-2.5 opacity-60" />
-            <p className="text-slate-500 text-sm font-semibold">All done!</p>
-            <p className="text-slate-600 text-xs mt-1">No pending actions right now</p>
+      <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+        {visibleActions.length === 0 ? (
+          <div style={{ padding: 32, textAlign: 'center' }}>
+            <CheckCircle2 size={24} style={{ color: '#40c070', margin: '0 auto 8px', display: 'block', opacity: 0.6 }} />
+            <p style={{ color: 'var(--t2)', fontSize: 12, fontWeight: 600, margin: '0 0 4px' }}>All done!</p>
+            <p style={{ color: 'var(--t3)', fontSize: 10, margin: 0 }}>No pending actions right now</p>
           </div>
         ) : (
-          actions.map((action, i) => {
-            const cfg = TYPE_CONFIG[action.actionType] ?? DEFAULT_CFG;
-            const isClickable = !!action.emailId;
-            return (
-              <div
-                key={action.id}
-                onClick={() => {
-                  if (isClickable) {
-                    navigate(`/inbox?emailId=${action.emailId}`);
-                  }
+          visibleActions.map((action, i) => (
+            <div
+              key={action.id}
+              onClick={() => action.emailId && navigate(`/inbox?emailId=${action.emailId}`)}
+              className={`animate-fade-in delay-${(i + 1) * 50}`}
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 10,
+                padding: '10px 14px',
+                borderBottom: '1px solid var(--border)',
+                cursor: action.emailId ? 'pointer' : 'default',
+                transition: 'background 0.15s ease',
+              }}
+              onMouseEnter={e => { if (action.emailId) (e.currentTarget as HTMLElement).style.background = 'var(--s2)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; }}
+            >
+              {/* Checkbox */}
+              <button
+                onClick={(e) => handleComplete(e, action.id)}
+                title="Mark complete"
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 3,
+                  border: '1px solid var(--border)',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  marginTop: 2,
+                  transition: 'all 0.15s ease',
                 }}
-                className={`px-4 py-3.5 border-b transition-all duration-200 hover:bg-white/[0.025] animate-fade-in delay-${(i + 1) * 50} ${
-                  isClickable ? 'cursor-pointer hover:translate-x-0.5' : ''
-                }`}
-                style={{ borderColor: 'rgba(255,255,255,0.04)' }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = '#40c070';
+                  (e.currentTarget as HTMLElement).style.background = 'rgba(64,192,112,0.10)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+                  (e.currentTarget as HTMLElement).style.background = 'transparent';
+                }}
               >
-                <div className="flex items-start gap-3">
-                  {/* Dot indicator */}
-                  <div
-                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-                    style={{ background: cfg.color, boxShadow: `0 0 6px ${cfg.color}60` }}
-                  />
+                {completing.has(action.id) && (
+                  <Check size={10} style={{ color: '#40c070' }} />
+                )}
+              </button>
 
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-200 leading-snug font-medium">
-                      {action.actionDescription}
-                    </p>
-                    {action.emailSubject && (
-                      <p className="text-[10px] text-slate-600 truncate mt-0.5 leading-tight">
-                        {action.emailSubject}
-                      </p>
-                    )}
-                    {action.deadline && (
-                      <p className="text-[10px] text-red-400 mt-1 flex items-center gap-1 font-semibold">
-                        <Clock size={9} /> {formatDateTime(action.deadline)}
-                      </p>
-                    )}
-                  </div>
-
-                  <span
-                    className="flex-shrink-0 px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wide"
-                    style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, color: cfg.color }}
-                  >
-                    {action.actionType}
-                  </span>
-                </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 12, color: 'var(--t1)', margin: '0 0 3px', lineHeight: 1.4, fontWeight: 500 }}>
+                  {action.actionDescription}
+                </p>
+                {action.emailSubject && (
+                  <p style={{ fontSize: 10, color: 'var(--t3)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {action.emailSubject}
+                  </p>
+                )}
+                {action.deadline && (
+                  <p style={{ fontSize: 9, color: '#f0c030', margin: 0, display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'JetBrains Mono, monospace' }}>
+                    <Clock size={8} /> {formatDateTime(action.deadline)}
+                  </p>
+                )}
               </div>
-            );
-          })
+
+              <span
+                style={{
+                  padding: '1px 5px',
+                  background: 'rgba(79,158,255,0.08)',
+                  border: '1px solid rgba(79,158,255,0.20)',
+                  borderRadius: 3,
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: '#4f9eff',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  flexShrink: 0,
+                }}
+              >
+                {action.actionType}
+              </span>
+            </div>
+          ))
         )}
       </div>
     </div>

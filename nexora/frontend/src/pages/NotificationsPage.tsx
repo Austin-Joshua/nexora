@@ -23,60 +23,99 @@ export const NotificationsPage: React.FC = () => {
 
   return (
     <AppShell title="Notifications" subtitle="Stay on top of what matters">
-      <div className="max-w-5xl mx-auto p-5 space-y-6">
+      <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 800, margin: '0 auto', width: '100%' }}>
 
-        {/* Header actions */}
+        {/* Header Actions */}
         {unread.length > 0 && (
-          <div className="flex items-center justify-between animate-fade-in">
-            <div className="flex items-center gap-2">
-              <span
-                className="px-3 py-1 rounded-full text-xs font-bold"
-                style={{ background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.22)', color: '#a5b4fc' }}
-              >
-                {unread.length} new
-              </span>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} className="animate-fade-in">
+            <span
+              style={{
+                padding: '2px 8px',
+                background: 'rgba(240,192,48,0.10)',
+                border: '1px solid rgba(240,192,48,0.22)',
+                borderRadius: 9999,
+                fontSize: 10,
+                color: '#f0c030',
+                fontWeight: 700,
+                fontFamily: 'JetBrains Mono, monospace',
+              }}
+            >
+              {unread.length} new
+            </span>
             <button
               onClick={markAllRead}
-              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-indigo-400 font-semibold transition-colors duration-200"
+              className="btn-ghost"
+              style={{
+                padding: '4px 10px',
+                fontSize: 10,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
             >
-              <CheckCheck size={13} /> Mark all read
+              <CheckCheck size={11} /> Mark all read
             </button>
           </div>
         )}
 
         {isLoading ? (
-          <NotificationsSkeleton />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }} className="animate-fade-in">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton" style={{ height: 52 }} />
+            ))}
+          </div>
         ) : notifications.length === 0 ? (
-          <EmptyNotifications />
+          <div style={{ textAlign: 'center', padding: '60px 20px' }} className="animate-fade-in">
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 12,
+                background: 'var(--s1)',
+                border: '1px solid var(--border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+              }}
+              className="animate-float"
+            >
+              <Bell size={24} style={{ color: 'var(--t3)' }} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--t1)', margin: '0 0 6px' }}>All caught up!</h3>
+            <p style={{ fontSize: 12, color: 'var(--t2)', margin: '0 0 16px', lineHeight: 1.6, maxWidth: 280, marginLeft: 'auto', marginRight: 'auto' }}>
+              No notifications yet. Nexora will alert you about deadlines, placements, and important emails.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontSize: 10, color: 'var(--t3)' }}>
+              <Sparkles size={11} /> AI-powered alerts based on your role
+            </div>
+          </div>
         ) : (
           <>
             {unread.length > 0 && (
-              <section className="animate-fade-in">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3 px-1">
-                  New ({unread.length})
-                </p>
-                <div className="space-y-2">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="animate-fade-in">
+                <span className="section-label">NEW ALERTS</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {unread.map((n, i) => (
-                    <div key={n.id} className={`animate-fade-in delay-${(i + 1) * 50}`}>
+                    <div key={n.id} className={`animate-fade-in delay-${(i + 1) * 30}`}>
                       <NotificationItem notification={n} />
                     </div>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
 
             {read.length > 0 && (
-              <section className="animate-fade-in delay-100">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-3 px-1">Earlier</p>
-                <div className="space-y-2 opacity-70">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="animate-fade-in delay-100">
+                <span className="section-label">EARLIER</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, opacity: 0.7 }}>
                   {read.map((n, i) => (
-                    <div key={n.id} className={`animate-fade-in delay-${(i + 1) * 50}`}>
+                    <div key={n.id} className={`animate-fade-in delay-${(i + 1) * 30}`}>
                       <NotificationItem notification={n} />
                     </div>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
           </>
         )}
@@ -84,32 +123,3 @@ export const NotificationsPage: React.FC = () => {
     </AppShell>
   );
 };
-
-const EmptyNotifications: React.FC = () => (
-  <div className="text-center py-20 animate-fade-in">
-    <div
-      className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center mb-5 animate-float"
-      style={{
-        background: 'rgba(99,102,241,0.08)',
-        border: '1px solid rgba(99,102,241,0.15)',
-      }}
-    >
-      <Bell size={32} className="text-indigo-400" />
-    </div>
-    <h3 className="text-lg font-bold text-white mb-2">All caught up!</h3>
-    <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed">
-      No notifications yet. Nexora will alert you about deadlines, placements, and important emails.
-    </p>
-    <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-slate-600">
-      <Sparkles size={11} /> AI-powered alerts based on your role
-    </div>
-  </div>
-);
-
-const NotificationsSkeleton: React.FC = () => (
-  <div className="space-y-3 animate-fade-in">
-    {[...Array(5)].map((_, i) => (
-      <div key={i} className="h-16 skeleton rounded-2xl" style={{ animationDelay: `${i * 80}ms` }} />
-    ))}
-  </div>
-);

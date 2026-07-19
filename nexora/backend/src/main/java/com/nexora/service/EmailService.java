@@ -135,4 +135,30 @@ public class EmailService {
                 .createdAt(email.getCreatedAt())
                 .build();
     }
+
+    public List<Map<String, Object>> getEmailVolume(Long userId, int days) {
+        LocalDateTime start = LocalDateTime.now().minusDays(days - 1L).withHour(0).withMinute(0).withSecond(0).withNano(0);
+        List<LocalDateTime> dates = emailRepository.findReceivedAtByUserIdAndReceivedAtAfter(userId, start);
+
+        Map<String, Long> grouped = new LinkedHashMap<>();
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        for (int i = days - 1; i >= 0; i--) {
+            grouped.put(java.time.LocalDate.now().minusDays(i).format(formatter), 0L);
+        }
+
+        for (LocalDateTime dt : dates) {
+            String key = dt.toLocalDate().format(formatter);
+            if (grouped.containsKey(key)) {
+                grouped.put(key, grouped.get(key) + 1);
+            }
+        }
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : grouped.entrySet()) {
+            result.add(Map.of("date", entry.getKey(), "count", entry.getValue()));
+        }
+        return result;
+    }
 }
+
