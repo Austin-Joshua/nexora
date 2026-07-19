@@ -13,6 +13,7 @@ export const AuthCallbackPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { setToken, setUser } = useAuthStore();
+  const hasCalled = React.useRef(false);
 
   useEffect(() => {
     // Handle Google OAuth errors (e.g., "access_denied", "no_access")
@@ -24,7 +25,8 @@ export const AuthCallbackPage: React.FC = () => {
     }
 
     const code = searchParams.get('code');
-    if (code) {
+    if (code && !hasCalled.current) {
+      hasCalled.current = true;
       authApi.exchangeCode(code)
         .then((authResponse) => {
           setToken(authResponse.token);

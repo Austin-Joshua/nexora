@@ -177,7 +177,8 @@ public class AuthService {
         String name = "Austin Joshua";
         String picture = "https://lh3.googleusercontent.com/a/default-user=s96-c";
 
-        User user = userRepository.findByGoogleId(googleId).orElse(null);
+        User user = userRepository.findByGoogleId(googleId)
+                .orElseGet(() -> userRepository.findByEmail(email).orElse(null));
         if (user == null) {
             user = User.builder()
                     .googleId(googleId)
@@ -194,6 +195,7 @@ public class AuthService {
             user.setProfilePictureUrl(picture);
             user.setGmailAccessToken(tokenEncryptor.encrypt("mock-access-token"));
             user.setTokenExpiry(LocalDateTime.now().plusHours(24));
+            user.setGoogleId(googleId);
         }
         boolean isNew = (user.getId() == null);
         user = userRepository.save(user);
