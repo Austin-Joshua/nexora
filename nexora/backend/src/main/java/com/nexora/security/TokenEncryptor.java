@@ -7,17 +7,19 @@ import org.springframework.stereotype.Component;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.SecureRandom;
 import java.util.Base64;
 
 /**
  * AES-256 encryption/decryption for sensitive fields like Gmail tokens.
+ * Uses a dynamic IV prepended to the ciphertext.
  */
 @Component
 @Slf4j
 public class TokenEncryptor {
 
     private static final String ALGORITHM = "AES/CBC/PKCS5PADDING";
-    private static final String IV = "nexora1234567890"; // 16-byte IV
+    private final SecureRandom secureRandom = new SecureRandom();
 
     @Value("${app.encryption-key}")
     private String encryptionKey;
@@ -30,11 +32,22 @@ public class TokenEncryptor {
                 throw new IllegalArgumentException("Invalid AES key length: " + keyBytes.length + " bytes (must be 16, 24, or 32)");
             }
             SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");
-            IvParameterSpec ivSpec = new IvParameterSpec(IV.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            
+            // Generate dynamic IV
+            byte[] iv = new byte[16];
+            secureRandom.nextBytes(iv);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+            
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
             byte[] encrypted = cipher.doFinal(plainText.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(encrypted);
+            
+            // Prepend IV to encrypted bytes
+            byte[] ivAndEncrypted = new byte[16 + encrypted.length];
+            System.arraycopy(iv, 0, ivAndEncrypted, 0, 16);
+            System.arraycopy(encrypted, 0, ivAndEncrypted, 16, encrypted.length);
+            
+            return Base64.getEncoder().encodeToString(ivAndEncrypted);
         } catch (Exception e) {
             log.error("Encryption failed", e);
             throw new RuntimeException("Token encryption failed", e);
@@ -49,11 +62,25 @@ public class TokenEncryptor {
                 throw new IllegalArgumentException("Invalid AES key length: " + keyBytes.length + " bytes (must be 16, 24, or 32)");
             }
             SecretKeySpec secretKey = new SecretKeySpec(keyBytes, "AES");
-            IvParameterSpec ivSpec = new IvParameterSpec(IV.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            
+            byte[] decoded = Base64.getDecoder().decode(encryptedText);
+            if (decoded.length < 16) {
+                throw new IllegalArgumentException("Invalid encrypted text: too short");
+            }
+            
+            // Extract IV
+            byte[] iv = new byte[16];
+            System.arraycopy(decoded, 0, iv, 0, 16);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+            
+            // Extract ciphertext
+            int ciphertextLength = decoded.length - 16;
+            byte[] ciphertext = new byte[ciphertextLength];
+            System.arraycopy(decoded, 16, ciphertext, 0, ciphertextLength);
+            
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec);
-            byte[] decoded = Base64.getDecoder().decode(encryptedText);
-            return new String(cipher.doFinal(decoded), java.nio.charset.StandardCharsets.UTF_8);
+            return new String(cipher.doFinal(ciphertext), java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("Decryption failed", e);
             throw new RuntimeException("Token decryption failed", e);

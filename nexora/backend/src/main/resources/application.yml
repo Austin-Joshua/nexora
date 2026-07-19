@@ -37,21 +37,21 @@ server:
     include-message: always
 
 google:
-  client-id: ${GOOGLE_CLIENT_ID:mock-google-client-id}
-  client-secret: ${GOOGLE_CLIENT_SECRET:mock-google-client-secret}
+  client-id: ${GOOGLE_CLIENT_ID}
+  client-secret: ${GOOGLE_CLIENT_SECRET}
   redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/auth/google/callback}
 
 gemini:
-  api-key: ${GEMINI_API_KEY:mock-gemini-api-key}
+  api-key: ${GEMINI_API_KEY}
   api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
 
 jwt:
-  secret: ${JWT_SECRET:your-super-secret-key-that-is-at-least-512-bits-long-for-security-and-compliance-with-jwt-standards}
+  secret: ${JWT_SECRET}
   expiration-ms: 86400000
 
 app:
   cors-allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
-  encryption-key: ${ENCRYPTION_KEY:12345678901234567890123456789012}
+  encryption-key: ${ENCRYPTION_KEY}
 
 resilience4j:
   ratelimiter:

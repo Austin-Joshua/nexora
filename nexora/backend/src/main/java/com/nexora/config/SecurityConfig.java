@@ -30,6 +30,9 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
+    @Value("${spring.h2.console.enabled:false}")
+    private boolean h2ConsoleEnabled;
+
     @Value("${app.cors-allowed-origins}")
     private String corsAllowedOrigins;
 
@@ -40,15 +43,20 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/google", "/api/auth/google/callback", "/api/auth/bypass").permitAll()
-                .requestMatchers("/ws/**").permitAll()
-                .requestMatchers("/actuator/health").permitAll()
-                // H2 console only in dev/local — guarded by H2_CONSOLE_ENABLED env var
-                .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .anyRequest().authenticated()
-            )
+            .authorizeHttpRequests(auth -> {
+                var authorized = auth
+                    .requestMatchers("/api/auth/google", "/api/auth/google/callback", "/api/auth/bypass").permitAll()
+                    .requestMatchers("/ws/**").permitAll()
+                    .requestMatchers("/actuator/health").permitAll();
+                
+                if (h2ConsoleEnabled) {
+                    authorized = authorized.requestMatchers("/h2-console/**").permitAll();
+                }
+                
+                authorized
+                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                    .anyRequest().authenticated();
+            })
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setContentType("application/json");
@@ -57,8 +65,11 @@ public class SecurityConfig {
                 })
             )
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-            // Allow H2 console iframes in dev; no effect when console is disabled
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+            .headers(headers -> {
+                if (h2ConsoleEnabled) {
+                    headers.frameOptions(frame -> frame.disable());
+                }
+            });
 
         return http.build();
     }
