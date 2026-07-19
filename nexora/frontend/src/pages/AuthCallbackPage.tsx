@@ -40,7 +40,7 @@ export const AuthCallbackPage: React.FC = () => {
             calendarSyncEnabled: authResponse.calendarSyncEnabled ?? true,
             lastSyncedAt: authResponse.lastSyncedAt,
           });
-          navigate(authResponse.onboardingComplete ? '/dashboard' : '/onboarding', { replace: true });
+          navigate('/dashboard', { replace: true });
         })
         .catch((err) => {
           console.error('Failed to exchange code:', err);

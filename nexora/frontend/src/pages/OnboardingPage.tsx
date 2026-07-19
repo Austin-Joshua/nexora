@@ -29,10 +29,14 @@ const ACCESS_POINTS = [
 ];
 
 export const OnboardingPage: React.FC = () => {
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    navigate('/dashboard', { replace: true });
+  }, [navigate]);
+
   const [selectedRole, setSelectedRole] = React.useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const { updateRole, user } = useAuth();
-  const navigate = useNavigate();
   const firstName = user?.name?.split(' ')[0] ?? 'there';
 
   const handleContinue = async () => {
