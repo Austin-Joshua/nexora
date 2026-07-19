@@ -112,6 +112,8 @@ public class AuthService {
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .userRole(user.getUserRole())
                 .onboardingComplete(!isNew)
+                .calendarSyncEnabled(user.getCalendarSyncEnabled())
+                .lastSyncedAt(user.getLastSyncedAt())
                 .build();
     }
 
@@ -120,9 +122,14 @@ public class AuthService {
                 .orElseThrow(() -> new NexoraException("User not found", 404));
     }
 
-    public AuthResponse updateProfile(Long userId, UserRole role) {
+    public AuthResponse updateProfile(Long userId, UserRole role, Boolean calendarSyncEnabled) {
         User user = getCurrentUser(userId);
-        user.setUserRole(role);
+        if (role != null) {
+            user.setUserRole(role);
+        }
+        if (calendarSyncEnabled != null) {
+            user.setCalendarSyncEnabled(calendarSyncEnabled);
+        }
         user = userRepository.save(user);
         String jwt = jwtTokenProvider.generateToken(user);
         return AuthResponse.builder()
@@ -134,6 +141,8 @@ public class AuthService {
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .userRole(user.getUserRole())
                 .onboardingComplete(true)
+                .calendarSyncEnabled(user.getCalendarSyncEnabled())
+                .lastSyncedAt(user.getLastSyncedAt())
                 .build();
     }
 
@@ -185,6 +194,8 @@ public class AuthService {
                 .profilePictureUrl(user.getProfilePictureUrl())
                 .userRole(user.getUserRole())
                 .onboardingComplete(!isNew)
+                .calendarSyncEnabled(user.getCalendarSyncEnabled())
+                .lastSyncedAt(user.getLastSyncedAt())
                 .build();
     }
 

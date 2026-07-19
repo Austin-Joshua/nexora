@@ -31,6 +31,7 @@ public class EmailClassificationService {
     private final EmailRepository emailRepository;
     private final EmailActionRepository actionRepository;
     private final ObjectMapper objectMapper;
+    private final CalendarService calendarService;
     private final java.util.concurrent.Semaphore semaphore = new java.util.concurrent.Semaphore(10);
 
     @Async
@@ -81,6 +82,11 @@ public class EmailClassificationService {
                 // Save action items
                 if (result.has("action_items") && result.get("action_items").isArray()) {
                     saveActionItems(result.get("action_items"), email, user.getId());
+                }
+
+                // Auto-sync calendar event if enabled
+                if (email.getDeadlineDetected() != null) {
+                    calendarService.createDeadlineEvent(user, email);
                 }
 
                 log.info("Classified email {} as {} / {}", emailId, email.getCategory(), email.getPriority());

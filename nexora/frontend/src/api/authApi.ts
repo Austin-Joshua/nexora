@@ -30,8 +30,8 @@ export const authApi = {
     return data;
   },
 
-  updateProfile: async (userRole: UserRole): Promise<AuthResponse> => {
-    const { data } = await axiosInstance.put<AuthResponse>('/api/auth/profile', { userRole });
+  updateProfile: async (params: { userRole?: UserRole; calendarSyncEnabled?: boolean }): Promise<AuthResponse> => {
+    const { data } = await axiosInstance.put<AuthResponse>('/api/auth/profile', params);
     return data;
   },
 

@@ -6,6 +6,8 @@ import { formatRelative } from '../../utils/formatDate';
 import { Paperclip } from 'lucide-react';
 import { useEmailStore } from '../../store/emailStore';
 import { CAT_COLORS } from '../../utils/catColors';
+import { emailApi } from '../../api/emailApi';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface EmailCardProps {
   email: Email;
@@ -21,12 +23,20 @@ function getPriorityBorderColor(priority: string): string {
 
 export const EmailCard: React.FC<EmailCardProps> = ({ email, onClick, isSelected }) => {
   const { setSelectedEmail } = useEmailStore();
+  const queryClient = useQueryClient();
   const catColor = CAT_COLORS[email.category]?.color ?? '#3d5570';
   const senderInitial = (email.senderName || email.senderEmail)[0]?.toUpperCase() ?? '?';
 
-  const handleClick = () => {
-    setSelectedEmail(email);
+  const handleClick = async () => {
+    setSelectedEmail({ ...email, isRead: true });
     onClick?.();
+    if (!email.isRead) {
+      try {
+        await emailApi.markRead(email.id);
+        queryClient.invalidateQueries({ queryKey: ['emails'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+      } catch {}
+    }
   };
 
   return (

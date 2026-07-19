@@ -7,6 +7,8 @@ export interface User {
   profilePictureUrl?: string;
   userRole: UserRole;
   onboardingComplete: boolean;
+  calendarSyncEnabled?: boolean;
+  lastSyncedAt?: string;
 }
 
 export interface AuthResponse {
@@ -18,4 +20,6 @@ export interface AuthResponse {
   profilePictureUrl?: string;
   userRole: UserRole;
   onboardingComplete: boolean;
+  calendarSyncEnabled?: boolean;
+  lastSyncedAt?: string;
 }

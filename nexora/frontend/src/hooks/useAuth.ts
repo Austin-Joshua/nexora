@@ -21,8 +21,11 @@ export function useAuth() {
     navigate('/');
   };
 
-  const updateRole = async (role: UserRole) => {
-    const authResponse = await authApi.updateProfile(role);
+  const updateProfile = async (params: { role?: UserRole; calendarSyncEnabled?: boolean }) => {
+    const authResponse = await authApi.updateProfile({
+      userRole: params.role,
+      calendarSyncEnabled: params.calendarSyncEnabled,
+    });
     setToken(authResponse.token);
     setUser({
       userId: authResponse.userId,
@@ -31,8 +34,14 @@ export function useAuth() {
       profilePictureUrl: authResponse.profilePictureUrl,
       userRole: authResponse.userRole,
       onboardingComplete: authResponse.onboardingComplete,
+      calendarSyncEnabled: authResponse.calendarSyncEnabled,
+      lastSyncedAt: authResponse.lastSyncedAt,
     });
   };
 
-  return { user, token, isAuthenticated, handleGoogleLogin, handleLogout, updateRole };
+  const updateRole = async (role: UserRole) => {
+    await updateProfile({ role });
+  };
+
+  return { user, token, isAuthenticated, handleGoogleLogin, handleLogout, updateRole, updateProfile };
 }

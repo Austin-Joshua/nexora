@@ -79,4 +79,21 @@ public class EmailController {
         return ResponseEntity.ok(
                 emailService.getEmailsBySender(user.getId(), senderEmail, page, size));
     }
+
+    @GetMapping("/thread/{threadId}")
+    public ResponseEntity<List<EmailResponse>> getEmailThread(
+            @AuthenticationPrincipal User user,
+            @PathVariable String threadId) {
+        return ResponseEntity.ok(emailService.getEmailThread(user.getId(), threadId));
+    }
+
+    @PostMapping("/{id}/draft-reply")
+    public ResponseEntity<Map<String, String>> draftReply(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String style = body.getOrDefault("style", "PROFESSIONAL");
+        String draft = emailService.draftReply(user.getId(), id, style);
+        return ResponseEntity.ok(Map.of("draft", draft));
+    }
 }

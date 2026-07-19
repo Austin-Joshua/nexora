@@ -2,6 +2,7 @@ package com.nexora.dto.response;
 
 import com.nexora.model.User.UserRole;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -16,4 +17,6 @@ public class AuthResponse {
     private String profilePictureUrl;
     private UserRole userRole;
     private boolean onboardingComplete;
+    private Boolean calendarSyncEnabled;
+    private LocalDateTime lastSyncedAt;
 }

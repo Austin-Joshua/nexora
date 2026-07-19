@@ -58,4 +58,10 @@ export const emailApi = {
     );
     return data;
   },
+
+  /** Returns all emails in a thread */
+  getEmailThread: async (threadId: string): Promise<any[]> => {
+    const { data } = await axiosInstance.get<any[]>(`/api/emails/thread/${threadId}`);
+    return data;
+  },
 };

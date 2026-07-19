@@ -4,6 +4,8 @@ import { BrainMessageComponent } from './BrainMessage';
 import { BrainInput } from './BrainInput';
 import { useBrain } from '../../hooks/useBrain';
 import { useAuthStore } from '../../store/authStore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { brainApi } from '../../api/brainApi';
 import { Brain, Sparkles, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,15 +29,78 @@ const SUGGESTED_QUERIES: Record<string, string[]> = {
   ],
 };
 
-export const BrainChat: React.FC = () => {
-  const { messages, isLoading, historyLoading, sendQuery, clearMessages } = useBrain();
+interface BrainChatProps {
+  selectedConversationId: number | null;
+  setSelectedConversationId: (id: number | null) => void;
+  onNewConversationSaved: () => void;
+}
+
+export const BrainChat: React.FC<BrainChatProps> = ({
+  selectedConversationId,
+  setSelectedConversationId,
+  onNewConversationSaved,
+}) => {
+  const { messages, isLoading, sendQuery, clearMessages } = useBrain();
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const bottomRef = React.useRef<HTMLDivElement>(null);
+
+  // Load history from react-query
+  const { data: history = [] } = useQuery({
+    queryKey: ['brain-history'],
+    queryFn: brainApi.getHistory,
+    staleTime: 60_000,
+  });
+
+  // Filter displayed messages based on selected conversation id
+  const displayedMessages = React.useMemo(() => {
+    if (selectedConversationId) {
+      const conv = history.find((c) => c.id === selectedConversationId);
+      if (conv) {
+        return [
+          {
+            id: `h-user-${conv.id}`,
+            type: 'user' as const,
+            content: conv.userQuery,
+            timestamp: conv.createdAt ? new Date(conv.createdAt) : new Date(),
+          },
+          {
+            id: `h-ai-${conv.id}`,
+            type: 'assistant' as const,
+            content: conv.aiResponse,
+            timestamp: conv.createdAt ? new Date(conv.createdAt) : new Date(),
+          },
+        ];
+      }
+    }
+    return messages;
+  }, [selectedConversationId, history, messages]);
 
   React.useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [displayedMessages]);
+
+  // Refetch history when active messages length increases (a new conversation is completed)
+  React.useEffect(() => {
+    if (messages.length > 0 && messages.length % 2 === 0) {
+      queryClient.invalidateQueries({ queryKey: ['brain-history'] });
+      onNewConversationSaved();
+    }
+  }, [messages.length, queryClient]);
+
+  const handleSend = (query: string) => {
+    if (selectedConversationId) {
+      setSelectedConversationId(null);
+      clearMessages();
+    }
+    sendQuery(query);
+  };
+
+  const handleClear = () => {
+    setSelectedConversationId(null);
+    clearMessages();
+  };
 
   const suggestions = SUGGESTED_QUERIES[user?.userRole ?? 'DEFAULT'] ?? SUGGESTED_QUERIES.DEFAULT;
 
@@ -68,8 +133,12 @@ export const BrainChat: React.FC = () => {
           <Brain size={17} style={{ color: '#4f9eff' }} />
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', margin: 0, lineHeight: 1 }}>Nexora Brain</p>
-          <p style={{ fontSize: 10, color: 'var(--t3)', margin: '3px 0 0' }}>Natural language Q&A over your entire inbox</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--t1)', margin: 0, lineHeight: 1 }}>
+            {selectedConversationId ? 'Archive View' : 'Nexora Brain'}
+          </p>
+          <p style={{ fontSize: 10, color: 'var(--t3)', margin: '3px 0 0' }}>
+            {selectedConversationId ? 'Viewing past conversation thread' : 'Natural language Q&A over your entire inbox'}
+          </p>
         </div>
         <span
           style={{
@@ -89,9 +158,9 @@ export const BrainChat: React.FC = () => {
         >
           <Sparkles size={8} className="animate-pulse-soft" /> AI POWERED
         </span>
-        {messages.length > 0 && (
+        {(displayedMessages.length > 0 || selectedConversationId) && (
           <button
-            onClick={clearMessages}
+            onClick={handleClear}
             className="btn-ghost"
             style={{ padding: '4px 10px', fontSize: 10 }}
             title="Clear conversation"
@@ -103,17 +172,11 @@ export const BrainChat: React.FC = () => {
 
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {historyLoading ? (
-          <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="skeleton" style={{ height: 60, maxWidth: `${[55, 80, 65][i]}%`, borderRadius: 10, alignSelf: i % 2 === 0 ? 'flex-end' : 'flex-start' }} />
-            ))}
-          </div>
-        ) : !messages.length ? (
-          <WelcomeState suggestions={suggestions} onSend={sendQuery} />
+        {displayedMessages.length === 0 ? (
+          <WelcomeState suggestions={suggestions} onSend={handleSend} />
         ) : (
           <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 900, margin: '0 auto' }}>
-            {messages.map((msg: BrainMessage, i) => (
+            {displayedMessages.map((msg: BrainMessage, i) => (
               <div
                 key={msg.id}
                 style={{ animationDelay: `${Math.min(i * 20, 200)}ms` }}
@@ -137,7 +200,7 @@ export const BrainChat: React.FC = () => {
         }}
       >
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <BrainInput onSend={sendQuery} isLoading={isLoading} />
+          <BrainInput onSend={handleSend} isLoading={isLoading} />
         </div>
       </div>
     </div>

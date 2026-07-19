@@ -24,6 +24,7 @@ public class EmailService {
 
     private final EmailRepository emailRepository;
     private final GmailSyncService gmailSyncService;
+    private final EmailClassificationService classificationService;
 
     public Page<EmailResponse> getEmails(Long userId, String category, String priority,
                                           String search, int page, int size) {
@@ -159,6 +160,37 @@ public class EmailService {
             result.add(Map.of("date", entry.getKey(), "count", entry.getValue()));
         }
         return result;
+    }
+
+    public List<EmailResponse> getEmailThread(Long userId, String threadId) {
+        List<Email> emails = emailRepository.findByUserIdAndGmailThreadIdOrderByReceivedAtAsc(userId, threadId);
+        return emails.stream().map(e -> toResponse(e, false)).collect(Collectors.toList());
+    }
+
+    public String draftReply(Long userId, Long emailId, String style) {
+        Email email = emailRepository.findByIdAndUserId(emailId, userId)
+                .orElseThrow(() -> new NexoraException("Email not found", 404));
+
+        String body = email.getBodyFull() != null ? email.getBodyFull() : email.getBodySnippet();
+        if (body == null) body = "";
+        if (body.length() > 2000) body = body.substring(0, 2000);
+
+        String systemPrompt = "Draft a " + style + " email reply. Return ONLY the reply body text. "
+                + "No subject line. No 'Dear...' unless formal. No sign-off unless formal. No HTML tags.";
+
+        String userMessage = "Original email from " + (email.getSenderName() != null ? email.getSenderName() : email.getSenderEmail())
+                + ":\nSubject: " + (email.getSubject() != null ? email.getSubject() : "")
+                + "\n\n" + body;
+
+        String draft = classificationService.generateBrainAnswer(systemPrompt, userMessage);
+        if (draft != null && !draft.isBlank()) {
+            return draft.trim();
+        }
+
+        return "Hi " + (email.getSenderName() != null ? email.getSenderName() : "there") + ",\n\n"
+                + "Thanks for your email regarding \"" + (email.getSubject() != null ? email.getSubject() : "") + "\".\n"
+                + "I'll review this and get back to you shortly.\n\n"
+                + "Regards,\n[Your Name]";
     }
 }
 

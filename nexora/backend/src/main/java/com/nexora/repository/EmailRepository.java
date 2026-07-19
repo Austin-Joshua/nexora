@@ -77,6 +77,11 @@ public interface EmailRepository extends JpaRepository<Email, Long> {
     List<LocalDateTime> findReceivedAtByUserIdAndReceivedAtAfter(@Param("userId") Long userId, @Param("start") LocalDateTime start);
 
     /**
+     * Fetch all emails in a thread for a given user, ordered by received date ASC.
+     */
+    List<Email> findByUserIdAndGmailThreadIdOrderByReceivedAtAsc(Long userId, String gmailThreadId);
+
+    /**
      * Fetch all emails from a specific sender for a given user, newest first.
      */
     Page<Email> findByUserIdAndSenderEmailOrderByReceivedAtDesc(

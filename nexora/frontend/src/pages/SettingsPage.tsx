@@ -21,22 +21,44 @@ const SECURITY_POINTS = [
   'No emails stored in plain text — only AI-processed metadata',
 ];
 
+function formatSyncTime(dateStr?: string) {
+  if (!dateStr) return 'Never';
+  try {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'just now';
+    if (mins === 1) return '1 minute ago';
+    if (mins < 60) return `${mins} minutes ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs === 1) return '1 hour ago';
+    return `${hrs} hours ago`;
+  } catch {
+    return 'Never';
+  }
+}
+
 export const SettingsPage: React.FC = () => {
   const { user } = useAuthStore();
-  const { updateRole, handleLogout } = useAuth();
+  const { updateProfile, handleLogout } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>(user?.userRole ?? 'STUDENT');
+  const [calendarSyncEnabled, setCalendarSyncEnabled] = useState(user?.calendarSyncEnabled ?? true);
 
   const handleSaveRole = async () => {
     setIsSaving(true);
     try {
-      await updateRole(selectedRole);
+      await updateProfile({ role: selectedRole });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCalendarToggle = async (val: boolean) => {
+    setCalendarSyncEnabled(val);
+    await updateProfile({ calendarSyncEnabled: val });
   };
 
   const hasChanges = selectedRole !== user?.userRole;
@@ -127,7 +149,7 @@ export const SettingsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Role selection */}
+        {/* Role selection & Sync info */}
         <div className="surface animate-fade-in delay-100">
           <div
             style={{
@@ -158,6 +180,11 @@ export const SettingsPage: React.FC = () => {
           <div style={{ padding: 16 }}>
             <p style={{ fontSize: 12, color: 'var(--t2)', margin: '0 0 14px', lineHeight: 1.6 }}>
               Nexora reads every email and ranks/prioritizes notification cards specifically suited for your role.
+              {user?.lastSyncedAt && (
+                <span style={{ display: 'block', fontSize: 10, color: 'var(--t3)', marginTop: 6, fontFamily: 'JetBrains Mono, monospace' }}>
+                  Last synced: {formatSyncTime(user.lastSyncedAt)}
+                </span>
+              )}
             </p>
             <div
               style={{
@@ -222,6 +249,30 @@ export const SettingsPage: React.FC = () => {
                   </button>
                 );
               })}
+            </div>
+
+            {/* Google Calendar Sync toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '14px 0', padding: '10px 12px', background: 'var(--s1)', border: '1px solid var(--border)', borderRadius: 8 }}>
+              <input
+                id="calendar-sync-toggle"
+                type="checkbox"
+                checked={calendarSyncEnabled}
+                onChange={e => handleCalendarToggle(e.target.checked)}
+                style={{
+                  width: 14,
+                  height: 14,
+                  accentColor: '#f0c030',
+                  cursor: 'pointer',
+                }}
+              />
+              <div>
+                <label htmlFor="calendar-sync-toggle" style={{ fontSize: 12, fontWeight: 600, color: 'var(--t1)', cursor: 'pointer' }}>
+                  Auto-add deadlines to Google Calendar
+                </label>
+                <p style={{ fontSize: 10, color: 'var(--t3)', margin: '2px 0 0' }}>
+                  Nexora will automatically insert detected email deadlines into your Google Calendar.
+                </p>
+              </div>
             </div>
 
             <button

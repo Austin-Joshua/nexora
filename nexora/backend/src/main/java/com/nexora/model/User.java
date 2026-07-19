@@ -54,6 +54,10 @@ public class User {
     @Column(name = "last_synced_at")
     private LocalDateTime lastSyncedAt;
 
+    @Column(name = "calendar_sync_enabled")
+    @Builder.Default
+    private Boolean calendarSyncEnabled = true;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Email> emails;

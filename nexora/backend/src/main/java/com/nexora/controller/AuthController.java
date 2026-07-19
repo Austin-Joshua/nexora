@@ -106,7 +106,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> getCurrentUser(@AuthenticationPrincipal User user) {
-        AuthResponse response = authService.updateProfile(user.getId(), user.getUserRole());
+        AuthResponse response = authService.updateProfile(user.getId(), null, null);
         return ResponseEntity.ok(response);
     }
 
@@ -114,7 +114,7 @@ public class AuthController {
     public ResponseEntity<AuthResponse> updateProfile(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody ProfileUpdateRequest request) {
-        AuthResponse response = authService.updateProfile(user.getId(), request.getUserRole());
+        AuthResponse response = authService.updateProfile(user.getId(), request.getUserRole(), request.getCalendarSyncEnabled());
         return ResponseEntity.ok(response);
     }
 

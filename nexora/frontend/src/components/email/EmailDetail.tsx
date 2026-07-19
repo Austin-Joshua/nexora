@@ -8,6 +8,7 @@ import { formatDateTime } from '../../utils/formatDate';
 import { Paperclip, Clock, CheckSquare, X, Calendar, Brain, ChevronDown, Zap, Check, Copy, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { CAT_COLORS } from '../../utils/catColors';
+import { useEmailStore } from '../../store/emailStore';
 
 interface EmailDetailProps {
   emailId: number;
@@ -22,12 +23,22 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
   const [isDraftLoading, setIsDraftLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [completingActions, setCompletingActions] = useState<Set<number>>(new Set());
+  const [showThread, setShowThread] = useState(false);
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { setSelectedEmail } = useEmailStore();
 
   const { data: email, isLoading } = useQuery({
     queryKey: ['email', emailId],
     queryFn: () => emailApi.getEmail(emailId),
+  });
+
+  // C.5 — Thread emails query
+  const { data: threadEmails = [], isLoading: isThreadLoading } = useQuery({
+    queryKey: ['email-thread', email?.gmailThreadId],
+    queryFn: () => emailApi.getEmailThread(email!.gmailThreadId!),
+    enabled: !!email?.gmailThreadId && showThread,
   });
 
   if (isLoading) {
@@ -243,6 +254,118 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
             <p style={{ fontSize: 12, color: '#9bb0c4', margin: 0, lineHeight: 1.6 }}>
               {email.aiSummary}
             </p>
+          </div>
+        )}
+
+        {/* C.5 — Collapsible Thread View */}
+        {email.gmailThreadId && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="animate-fade-in">
+            <button
+              onClick={() => setShowThread(t => !t)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 10,
+                fontWeight: 700,
+                color: 'var(--t3)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                alignSelf: 'flex-start',
+                padding: '4px 0',
+              }}
+            >
+              <ChevronDown
+                size={11}
+                style={{
+                  transition: 'transform 0.25s ease',
+                  transform: showThread ? 'rotate(180deg)' : 'none',
+                }}
+              />
+              THREAD ({showThread && isThreadLoading ? '...' : threadEmails.length || 'view messages'})
+            </button>
+
+            {showThread && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  paddingLeft: 8,
+                  borderLeft: '1px solid var(--border)',
+                }}
+                className="animate-fade-in"
+              >
+                {isThreadLoading ? (
+                  <div className="skeleton" style={{ height: 48, borderRadius: 6 }} />
+                ) : (
+                  threadEmails.map((sibling: any) => {
+                    const isCurrent = sibling.id === emailId;
+                    const siblingInitial = (sibling.senderName || sibling.senderEmail)[0]?.toUpperCase() ?? '?';
+                    return (
+                      <div
+                        key={sibling.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          padding: '6px 10px',
+                          background: isCurrent ? 'var(--s1)' : 'transparent',
+                          borderLeft: `3px solid ${isCurrent ? '#f0c030' : 'transparent'}`,
+                          borderRadius: 4,
+                          cursor: 'pointer',
+                          transition: 'background 0.15s ease',
+                        }}
+                        onClick={() => {
+                          if (!isCurrent) {
+                            setSelectedEmail(sibling);
+                          }
+                        }}
+                        onMouseEnter={e => {
+                          if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'var(--s1)';
+                        }}
+                        onMouseLeave={e => {
+                          if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'transparent';
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: 5,
+                            background: 'rgba(79,158,255,0.08)',
+                            border: '1px solid rgba(79,158,255,0.18)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 10,
+                            fontWeight: 800,
+                            color: '#4f9eff',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {siblingInitial}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 2 }}>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {sibling.senderName || sibling.senderEmail}
+                            </span>
+                            <span style={{ fontSize: 8, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>
+                              {formatDateTime(sibling.receivedAt)}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 10, color: 'var(--t2)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {sibling.bodySnippet || '(no content snippet)'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
           </div>
         )}
 
