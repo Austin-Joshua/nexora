@@ -133,7 +133,7 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#080c12' }} className="animate-fade-in">
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)' }} className="animate-fade-in">
       {/* Header */}
       <div
         style={{
@@ -240,7 +240,7 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
         {email.aiSummary && (
           <div
             style={{
-              background: '#0f1720',
+              background: 'var(--s2)',
               borderLeft: '3px solid #f0c030',
               borderRadius: 7,
               padding: '10px 14px',
@@ -505,7 +505,7 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
                     style={{
                       width: '100%',
                       minHeight: 100,
-                      background: '#080c12',
+                      background: 'var(--bg)',
                       border: '1px solid var(--border)',
                       borderRadius: 6,
                       padding: '8px 10px',
@@ -546,7 +546,7 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
           <span className="section-label" style={{ display: 'block', marginBottom: 6 }}>EMAIL CONTENT</span>
           <div
             style={{
-              background: '#0b1018',
+              background: 'var(--s1)',
               border: '1px solid var(--border)',
               borderRadius: 7,
               padding: '11px 12px',

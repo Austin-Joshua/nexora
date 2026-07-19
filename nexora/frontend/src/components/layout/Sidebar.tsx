@@ -29,7 +29,7 @@ export const Sidebar: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         flexShrink: 0,
-        background: '#060a0f',
+        background: 'var(--s1)',
         borderRight: '1px solid var(--border)',
       }}
     >

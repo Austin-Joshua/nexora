@@ -132,7 +132,7 @@
     border: 1px solid transparent;
   }
   .nav-btn:hover {
-    background: #1a2535;
+    background: var(--s2);
     color: var(--t2);
   }
   .nav-btn.active {

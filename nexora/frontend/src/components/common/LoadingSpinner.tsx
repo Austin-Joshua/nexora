@@ -38,7 +38,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', cla
 };
 
 export const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center min-h-screen" style={{ background: '#080c12' }}>
+  <div className="flex items-center justify-center min-h-screen" style={{ background: 'var(--bg)' }}>
     <div className="flex flex-col items-center gap-5 animate-fade-in">
       <div className="relative">
         <div

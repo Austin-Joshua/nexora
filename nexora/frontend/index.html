@@ -15,6 +15,15 @@
       if (typeof global === 'undefined') {
         var global = window;
       }
+      // Theme preload — runs before paint to avoid flash
+      (function() {
+        var saved = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = (saved === 'dark' || saved === 'light') ? saved : (prefersDark ? 'dark' : 'light');
+        if (theme === 'light') {
+          document.documentElement.classList.add('light');
+        }
+      })();
     </script>
   </head>
   <body>

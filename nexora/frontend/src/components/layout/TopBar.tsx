@@ -42,7 +42,9 @@ export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
   const lastSyncLabel = useRelativeTime(lastSyncedAt);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
-    return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark' || saved === 'light') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
     <header
       style={{
         height: 48,
-        background: '#060a0f',
+        background: 'var(--s1)',
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',

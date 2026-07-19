@@ -48,7 +48,7 @@ export const BrainPage: React.FC = () => {
             flexDirection: 'column',
             width: historyOpen ? 220 : 0,
             borderRight: historyOpen ? '1px solid var(--border)' : 'none',
-            background: '#060a0f',
+            background: 'var(--s1)',
           }}
         >
           {historyOpen && (

@@ -54,8 +54,8 @@ export const OnboardingPage: React.FC = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: '#080c12',
-        backgroundImage: 'radial-gradient(circle, #1a2535 1px, transparent 1px)',
+        background: 'var(--bg)',
+        backgroundImage: 'radial-gradient(circle, var(--border) 1px, transparent 1px)',
         backgroundSize: '28px 28px',
         display: 'flex',
         alignItems: 'center',
@@ -167,7 +167,7 @@ export const OnboardingPage: React.FC = () => {
         {/* Privacy notice */}
         <div
           style={{
-            background: '#0b1018',
+            background: 'var(--s2)',
             borderLeft: '3px solid #4f9eff',
             borderRadius: '0 7px 7px 0',
             padding: '12px 16px',

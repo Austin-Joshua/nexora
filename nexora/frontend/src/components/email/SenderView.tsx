@@ -302,7 +302,7 @@ export const SenderView: React.FC = () => {
           display: 'flex',
           flexDirection: 'column',
           borderRight: '1px solid var(--border)',
-          background: '#060a0f',
+          background: 'var(--s1)',
         }}
       >
         <div style={{ padding: 12, borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
