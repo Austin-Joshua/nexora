@@ -178,4 +178,5 @@
             </plugin>
         </plugins>
     </build>
+<!-- Trigger build path update in VS Code IDE -->
 </project>
