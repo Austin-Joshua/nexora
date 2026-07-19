@@ -2,7 +2,6 @@ package com.nexora.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nexora.config.ClaudeConfig;
 import com.nexora.config.GeminiConfig;
 import com.nexora.model.Email;
 import com.nexora.model.Email.EmailCategory;
@@ -28,7 +27,6 @@ import java.util.*;
 @Slf4j
 public class EmailClassificationService {
 
-    private final ClaudeConfig claudeConfig;
     private final GeminiConfig geminiConfig;
     private final EmailRepository emailRepository;
     private final EmailActionRepository actionRepository;
@@ -52,10 +50,7 @@ public class EmailClassificationService {
                 String userMessage  = buildUserMessage(email, body);
 
                 String rawResponse = null;
-                if (claudeConfig.isConfigured()) {
-                    log.info("Classifying email {} using Claude AI...", emailId);
-                    rawResponse = callClaude(systemPrompt, userMessage);
-                } else if (geminiConfig.isConfigured()) {
+                if (geminiConfig.isConfigured()) {
                     log.info("Classifying email {} using Google Gemini API...", emailId);
                     rawResponse = callGemini(systemPrompt, userMessage);
                 } else {
@@ -144,34 +139,6 @@ Body:
             body);
     }
 
-    public String callClaude(String systemPrompt, String userMessage) {
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", claudeConfig.getModel());
-            requestBody.put("max_tokens", 1024);
-            requestBody.put("system", systemPrompt);
-            requestBody.put("messages", List.of(
-                Map.of("role", "user", "content", userMessage)
-            ));
-
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, claudeConfig.buildHeaders());
-            @SuppressWarnings("rawtypes")
-            ResponseEntity<Map> response = restTemplate.postForEntity(claudeConfig.getApiUrl(), request, Map.class);
-
-            if (response.getBody() != null && response.getBody().containsKey("content")) {
-                @SuppressWarnings("unchecked")
-                List<Map<String, Object>> content = (List<Map<String, Object>>) response.getBody().get("content");
-                if (!content.isEmpty()) {
-                    return (String) content.get(0).get("text");
-                }
-            }
-        } catch (Exception e) {
-            log.error("Claude API call failed: {}", e.getMessage());
-        }
-        return null;
-    }
-
     @SuppressWarnings("unchecked")
     public String callGemini(String systemPrompt, String userMessage) {
         try {
@@ -216,15 +183,22 @@ Body:
     }
 
     public String generateBrainAnswer(String systemPrompt, String userQuery) {
-        if (claudeConfig.isConfigured()) {
-            log.info("Querying Nexora Brain using Claude...");
-            return callClaude(systemPrompt, userQuery);
-        } else if (geminiConfig.isConfigured()) {
+        if (geminiConfig.isConfigured()) {
             log.info("Querying Nexora Brain using Gemini...");
             return callGemini(systemPrompt, userQuery);
         } else {
             log.info("No AI keys configured for Nexora Brain. Running local keyword-based parser...");
             return null;
+        }
+    }
+
+    public String summarizeThread(String systemPrompt, String threadContext) {
+        if (geminiConfig.isConfigured()) {
+            log.info("Summarizing thread using Gemini...");
+            return callGemini(systemPrompt, threadContext);
+        } else {
+            log.info("No AI keys configured for thread summarization — using local fallback summary...");
+            return "This thread contains multiple emails and was analyzed locally. Configure a Gemini API key for premium AI thread summaries.";
         }
     }
 
@@ -308,7 +282,7 @@ Body:
             }
             return objectMapper.readTree(cleaned);
         } catch (Exception e) {
-            log.error("Failed to parse Claude JSON response: {}", e.getMessage());
+            log.error("Failed to parse AI JSON response: {}", e.getMessage());
             return null;
         }
     }

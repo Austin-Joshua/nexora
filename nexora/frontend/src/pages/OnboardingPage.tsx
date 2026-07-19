@@ -67,7 +67,7 @@ const ROLES: RoleOption[] = [
 const ACCESS_POINTS = [
   { text: 'Reads your Gmail inbox (read-only OAuth scope)', ok: true },
   { text: 'Stores AI summaries & action items — not raw emails', ok: true },
-  { text: 'Sends email content to Claude AI for classification', ok: true },
+  { text: 'Sends email content to Gemini AI for classification', ok: true },
   { text: 'Never sends, modifies, or deletes your emails', ok: true },
 ];
 

@@ -24,7 +24,7 @@ public class NexoraBrainService {
     private final EmailRepository emailRepository;
     private final BrainConversationRepository conversationRepository;
     private final UserRepository userRepository;
-    private final EmailClassificationService claudeClient;
+    private final EmailClassificationService classificationService;
     private final EmailService emailService;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
@@ -48,7 +48,7 @@ User's email history:
 %s
 """.formatted(emailContext);
 
-        String answer = claudeClient.generateBrainAnswer(systemPrompt, userQuery);
+        String answer = classificationService.generateBrainAnswer(systemPrompt, userQuery);
         if (answer == null) {
             answer = generateLocalBrainAnswer(recentEmails, userQuery);
         }

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class SummarizationService {
 
     private final EmailRepository emailRepository;
-    private final EmailClassificationService claudeClient;
+    private final EmailClassificationService classificationService;
 
     private static final String THREAD_SUMMARY_PREFIX = "[Thread Summary] ";
 
@@ -59,7 +59,7 @@ public class SummarizationService {
                         + "Analyze the email thread. Write a concise 2-3 sentence summary. "
                         + "Respond ONLY with the summary text. No markdown, no prefixes.";
 
-                String summary = claudeClient.callClaude(systemPrompt, threadContext);
+                String summary = classificationService.summarizeThread(systemPrompt, threadContext);
                 if (summary != null && !summary.isBlank()) {
                     latestEmail.setAiSummary(THREAD_SUMMARY_PREFIX + summary.trim());
                     emailRepository.save(latestEmail);

@@ -4,7 +4,7 @@
 
 ![Stack](https://img.shields.io/badge/Backend-Spring_Boot_3-6DB33F?style=flat-square&logo=spring)
 ![Stack](https://img.shields.io/badge/Frontend-React_18_+_Vite-61DAFB?style=flat-square&logo=react)
-![Stack](https://img.shields.io/badge/AI-Claude_Sonnet-7C3AED?style=flat-square)
+![Stack](https://img.shields.io/badge/AI-Gemini_Flash-F15A24?style=flat-square)
 ![Stack](https://img.shields.io/badge/Auth-Google_OAuth2-4285F4?style=flat-square&logo=google)
 ![Stack](https://img.shields.io/badge/DB-H2_/_MySQL-003B57?style=flat-square)
 
@@ -18,7 +18,7 @@
 | State | Zustand + TanStack Query |
 | Backend | Spring Boot 3 + Java 17 |
 | Database | H2 (dev, zero-config) / MySQL (production) |
-| AI | Claude API (claude-sonnet-4-5) |
+| AI | Gemini API (gemini-1.5-flash) |
 | Email | Gmail API (read-only) |
 | Calendar | Google Calendar API |
 | Real-time | WebSocket (STOMP) |
@@ -86,7 +86,6 @@ npm run dev
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_REDIRECT_URI=https://your-backend-url.onrender.com/api/auth/google/callback
-CLAUDE_API_KEY=your_anthropic_api_key
 JWT_SECRET=your-minimum-32-char-secret-key
 ENCRYPTION_KEY=your16charenckey
 # Comma-separated: add both Vercel URL and any localhost for local dev
@@ -189,7 +188,6 @@ nexora/
             ├── config/
             │   ├── SecurityConfig.java
             │   ├── GmailConfig.java
-            │   ├── ClaudeConfig.java
             │   └── WebSocketConfig.java
             ├── controller/
             │   ├── AuthController.java

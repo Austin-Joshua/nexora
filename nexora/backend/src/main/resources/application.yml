@@ -41,11 +41,6 @@ google:
   client-secret: ${GOOGLE_CLIENT_SECRET:mock-google-client-secret}
   redirect-uri: ${GOOGLE_REDIRECT_URI:http://localhost:8080/api/auth/google/callback}
 
-claude:
-  api-key: ${CLAUDE_API_KEY:mock-claude-api-key}
-  api-url: https://api.anthropic.com/v1/messages
-  model: claude-sonnet-4-5
-
 gemini:
   api-key: ${GEMINI_API_KEY:mock-gemini-api-key}
   api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent

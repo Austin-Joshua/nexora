@@ -313,7 +313,7 @@ export const LandingPage: React.FC = () => {
             <span className="text-sm font-semibold text-white">Nexora</span>
           </div>
           <p className="text-xs text-slate-600 text-center">
-            © 2025 Nexora · Communication Intelligence Platform · React + Spring Boot + Claude AI
+            © 2025 Nexora · Communication Intelligence Platform · React + Spring Boot + Gemini AI
           </p>
           <div className="flex items-center gap-4 text-xs text-slate-600">
             <span>Privacy</span>
