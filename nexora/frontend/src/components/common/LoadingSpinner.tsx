@@ -20,15 +20,15 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', cla
       <div
         className="absolute inset-0 rounded-full animate-spin"
         style={{
-          border: `${b} solid rgba(99,102,241,0.2)`,
-          borderTopColor: '#818cf8',
+          border: `${b} solid rgba(240,192,48,0.12)`,
+          borderTopColor: '#f0c030',
         }}
       />
       <div
         className="absolute inset-[3px] rounded-full animate-spin"
         style={{
-          border: `${b} solid rgba(139,92,246,0.15)`,
-          borderBottomColor: '#a78bfa',
+          border: `${b} solid rgba(79,158,255,0.12)`,
+          borderBottomColor: '#4f9eff',
           animationDirection: 'reverse',
           animationDuration: '0.8s',
         }}
@@ -38,25 +38,23 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', cla
 };
 
 export const PageLoader: React.FC = () => (
-  <div className="flex items-center justify-center min-h-screen">
+  <div className="flex items-center justify-center min-h-screen" style={{ background: '#080c12' }}>
     <div className="flex flex-col items-center gap-5 animate-fade-in">
-      {/* Animated logo */}
       <div className="relative">
         <div
-          className="w-20 h-20 rounded-3xl flex items-center justify-center animate-glow"
+          className="w-16 h-16 rounded-2xl flex items-center justify-center"
           style={{
-            background: 'linear-gradient(135deg, #6366f1, #7c3aed)',
-            boxShadow: '0 8px 40px rgba(99,102,241,0.4)',
+            background: 'var(--s1)',
+            border: '1px solid var(--border)',
           }}
         >
-          <Zap size={32} className="text-white" />
+          <Zap size={24} style={{ color: '#f0c030' }} className="animate-pulse-soft" />
         </div>
-        {/* Spinning ring */}
         <div
-          className="absolute -inset-2 rounded-[28px] animate-spin"
+          className="absolute -inset-1.5 rounded-[22px] animate-spin"
           style={{
             border: '2px solid transparent',
-            background: 'linear-gradient(135deg, rgba(99,102,241,0.4), transparent) border-box',
+            background: 'linear-gradient(135deg, rgba(240,192,48,0.4), transparent) border-box',
             WebkitMask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
             WebkitMaskComposite: 'destination-out',
             maskComposite: 'exclude',
@@ -66,8 +64,8 @@ export const PageLoader: React.FC = () => (
       </div>
 
       <div className="text-center">
-        <p className="text-white font-bold text-lg tracking-tight">Nexora</p>
-        <p className="text-slate-500 text-sm mt-0.5 animate-pulse-soft">Loading your intelligence layer…</p>
+        <p className="font-bold text-base tracking-tight" style={{ color: 'var(--t1)' }}>Nexora</p>
+        <p className="text-xs mt-1 animate-pulse-soft" style={{ color: 'var(--t3)' }}>Loading your intelligence layer…</p>
       </div>
 
       {/* Dots */}
@@ -77,7 +75,7 @@ export const PageLoader: React.FC = () => (
             key={i}
             className="w-1.5 h-1.5 rounded-full"
             style={{
-              background: '#6366f1',
+              background: '#f0c030',
               animation: `bounce-dots 1.4s ease-in-out ${i * 0.2}s infinite`,
             }}
           />

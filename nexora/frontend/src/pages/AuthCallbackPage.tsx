@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { authApi } from '../api/authApi';
 import { PageLoader } from '../components/common/LoadingSpinner';
 
 /**
  * Handles the OAuth callback redirect from the backend.
- * Backend redirects to /auth/callback?token=JWT&onboarding=true|false
+ * Backend redirects to /auth/callback?code=UUID
  * Google may also redirect here with ?error=access_denied&error_description=...
  */
 export const AuthCallbackPage: React.FC = () => {
@@ -18,37 +19,36 @@ export const AuthCallbackPage: React.FC = () => {
     const error = searchParams.get('error');
     if (error) {
       console.warn('Google OAuth error:', error, searchParams.get('error_description'));
-      // Redirect to landing with an error flag so user sees a friendly message
       navigate(`/?auth_error=${encodeURIComponent(error)}`, { replace: true });
       return;
     }
 
-    const token    = searchParams.get('token');
-    const onboard  = searchParams.get('onboarding') === 'true';
-    const userId   = searchParams.get('userId');
-    const email    = searchParams.get('email');
-    const name     = searchParams.get('name');
-    const role     = searchParams.get('role');
-    const picture  = searchParams.get('picture');
-
-    if (token) {
-      setToken(token);
-      if (userId && email && name && role) {
-        setUser({
-          userId: parseInt(userId),
-          email,
-          name,
-          profilePictureUrl: picture ?? undefined,
-          userRole: role as any,
-          onboardingComplete: !onboard,
+    const code = searchParams.get('code');
+    if (code) {
+      authApi.exchangeCode(code)
+        .then((authResponse) => {
+          setToken(authResponse.token);
+          setUser({
+            userId: authResponse.userId,
+            email: authResponse.email,
+            name: authResponse.name,
+            profilePictureUrl: authResponse.profilePictureUrl ?? undefined,
+            userRole: authResponse.userRole,
+            onboardingComplete: authResponse.onboardingComplete,
+            calendarSyncEnabled: authResponse.calendarSyncEnabled ?? true,
+            lastSyncedAt: authResponse.lastSyncedAt,
+          });
+          navigate(authResponse.onboardingComplete ? '/dashboard' : '/onboarding', { replace: true });
+        })
+        .catch((err) => {
+          console.error('Failed to exchange code:', err);
+          navigate('/?auth_error=exchange_failed', { replace: true });
         });
-      }
-      navigate(onboard ? '/onboarding' : '/dashboard', { replace: true });
     } else {
-      // No token and no error — something unexpected, go home
+      // No code and no error — something unexpected, go home
       navigate('/', { replace: true });
     }
-  }, []);
+  }, [searchParams, navigate, setToken, setUser]);
 
   return <PageLoader />;
 };

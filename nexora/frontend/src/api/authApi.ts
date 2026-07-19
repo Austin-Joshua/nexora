@@ -30,6 +30,11 @@ export const authApi = {
     return data;
   },
 
+  exchangeCode: async (code: string): Promise<AuthResponse> => {
+    const { data } = await axiosInstance.get<AuthResponse>('/api/auth/token', { params: { code } });
+    return data;
+  },
+
   updateProfile: async (params: { userRole?: UserRole; calendarSyncEnabled?: boolean }): Promise<AuthResponse> => {
     const { data } = await axiosInstance.put<AuthResponse>('/api/auth/profile', params);
     return data;

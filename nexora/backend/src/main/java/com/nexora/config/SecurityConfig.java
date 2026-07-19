@@ -30,9 +30,6 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
-    @Value("${spring.h2.console.enabled:false}")
-    private boolean h2ConsoleEnabled;
-
     @Value("${app.cors-allowed-origins}")
     private String corsAllowedOrigins;
 
@@ -43,20 +40,13 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> {
-                var authorized = auth
-                    .requestMatchers("/api/auth/google", "/api/auth/google/callback", "/api/auth/bypass").permitAll()
-                    .requestMatchers("/ws/**").permitAll()
-                    .requestMatchers("/actuator/health").permitAll();
-                
-                if (h2ConsoleEnabled) {
-                    authorized = authorized.requestMatchers("/h2-console/**").permitAll();
-                }
-                
-                authorized
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                    .anyRequest().authenticated();
-            })
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/google", "/api/auth/google/callback", "/api/auth/bypass", "/api/auth/token").permitAll()
+                .requestMatchers("/ws/**").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .anyRequest().authenticated()
+            )
             .exceptionHandling(exceptions -> exceptions
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setContentType("application/json");
@@ -64,12 +54,7 @@ public class SecurityConfig {
                     response.getWriter().write("{\"error\":\"Unauthorized\",\"status\":401}");
                 })
             )
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-            .headers(headers -> {
-                if (h2ConsoleEnabled) {
-                    headers.frameOptions(frame -> frame.disable());
-                }
-            });
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

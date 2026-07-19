@@ -122,6 +122,23 @@ public class AuthService {
                 .orElseThrow(() -> new NexoraException("User not found", 404));
     }
 
+    public AuthResponse buildAuthResponse(String token, boolean onboardingComplete) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+        User user = getCurrentUser(userId);
+        return AuthResponse.builder()
+                .token(token)
+                .tokenType("Bearer")
+                .userId(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .profilePictureUrl(user.getProfilePictureUrl())
+                .userRole(user.getUserRole())
+                .onboardingComplete(onboardingComplete)
+                .calendarSyncEnabled(user.getCalendarSyncEnabled())
+                .lastSyncedAt(user.getLastSyncedAt())
+                .build();
+    }
+
     public AuthResponse updateProfile(Long userId, UserRole role, Boolean calendarSyncEnabled) {
         User user = getCurrentUser(userId);
         if (role != null) {
@@ -394,6 +411,39 @@ public class AuthService {
         } catch (Exception e) {
             log.error("Failed to fetch user info: {}", e.getMessage());
             throw new NexoraException("Failed to fetch Google profile", 401);
+        }
+    }
+
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        migrateTokenEncryption();
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void migrateTokenEncryption() {
+        log.info("Checking token encryption compatibility...");
+        List<User> users = userRepository.findAll();
+        int migratedCount = 0;
+        for (User user : users) {
+            if (user.getGmailAccessToken() != null) {
+                try {
+                    // Try to decrypt with new random IV method.
+                    // If it succeeded, token is compatible.
+                    tokenEncryptor.decrypt(user.getGmailAccessToken());
+                } catch (Exception e) {
+                    // Encryption mismatch (old static IV token) -> clear to force user re-auth
+                    user.setGmailAccessToken(null);
+                    user.setGmailRefreshToken(null);
+                    user.setTokenExpiry(null);
+                    userRepository.save(user);
+                    migratedCount++;
+                }
+            }
+        }
+        if (migratedCount > 0) {
+            log.info("Token migration complete — cleared {} incompatible tokens. Users must reconnect Gmail.", migratedCount);
+        } else {
+            log.info("Token migration check complete — all tokens compatible.");
         }
     }
 }

@@ -40,6 +40,10 @@ export const emailApi = {
     await axiosInstance.patch(`/api/emails/${id}/read`);
   },
 
+  markAsRead: async (id: number): Promise<void> => {
+    await axiosInstance.patch(`/api/emails/${id}/read`);
+  },
+
   /** Returns all senders ranked by email count with latest subject */
   getSenderSummary: async (): Promise<SenderSummary[]> => {
     const { data } = await axiosInstance.get<SenderSummary[]>('/api/emails/by-sender');

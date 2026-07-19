@@ -34,6 +34,17 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
     queryFn: () => emailApi.getEmail(emailId),
   });
 
+  React.useEffect(() => {
+    if (email && !email.isRead) {
+      emailApi.markAsRead(email.id)
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['emails'] });
+          queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
+        })
+        .catch(() => {});
+    }
+  }, [email?.id, email?.isRead, queryClient]);
+
   // C.5 — Thread emails query
   const { data: threadEmails = [], isLoading: isThreadLoading } = useQuery({
     queryKey: ['email-thread', email?.gmailThreadId],

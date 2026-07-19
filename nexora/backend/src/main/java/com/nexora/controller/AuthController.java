@@ -21,6 +21,8 @@ public class AuthController {
     @Value("${app.cors-allowed-origins}")
     private String corsAllowedOrigins;
 
+    private final java.util.Map<String, String> pendingTokens = new java.util.concurrent.ConcurrentHashMap<>();
+
     /**
      * Frontend redirects user to:
      * https://accounts.google.com/o/oauth2/v2/auth?client_id=...&redirect_uri=.../api/auth/google/callback&response_type=code&scope=...&access_type=offline&prompt=consent
@@ -59,14 +61,16 @@ public class AuthController {
         AuthResponse authResponse = authService.handleGoogleCallback(code, dynamicRedirectUri);
         String frontendBase = corsAllowedOrigins.split(",")[0].trim();
 
+        String exchangeCode = java.util.UUID.randomUUID().toString();
+        String valueToStore = authResponse.getToken() + ";" + authResponse.isOnboardingComplete();
+        pendingTokens.put(exchangeCode, valueToStore);
+
+        // Auto-expire after 60 seconds
+        java.util.concurrent.CompletableFuture.delayedExecutor(60, java.util.concurrent.TimeUnit.SECONDS)
+                .execute(() -> pendingTokens.remove(exchangeCode));
+
         String redirectUrl = org.springframework.web.util.UriComponentsBuilder.fromHttpUrl(frontendBase + "/auth/callback")
-                .queryParam("token", authResponse.getToken())
-                .queryParam("onboarding", !authResponse.isOnboardingComplete())
-                .queryParam("userId", authResponse.getUserId())
-                .queryParam("email", authResponse.getEmail())
-                .queryParam("name", authResponse.getName())
-                .queryParam("role", authResponse.getUserRole().name())
-                .queryParam("picture", authResponse.getProfilePictureUrl())
+                .queryParam("code", exchangeCode)
                 .build().toUriString();
 
         response.sendRedirect(redirectUrl);
@@ -91,17 +95,31 @@ public class AuthController {
         AuthResponse authResponse = authService.handleBypassLogin();
         String frontendBase = corsAllowedOrigins.split(",")[0].trim();
 
+        String exchangeCode = java.util.UUID.randomUUID().toString();
+        String valueToStore = authResponse.getToken() + ";" + authResponse.isOnboardingComplete();
+        pendingTokens.put(exchangeCode, valueToStore);
+
+        // Auto-expire after 60 seconds
+        java.util.concurrent.CompletableFuture.delayedExecutor(60, java.util.concurrent.TimeUnit.SECONDS)
+                .execute(() -> pendingTokens.remove(exchangeCode));
+
         String redirectUrl = org.springframework.web.util.UriComponentsBuilder.fromHttpUrl(frontendBase + "/auth/callback")
-                .queryParam("token", authResponse.getToken())
-                .queryParam("onboarding", !authResponse.isOnboardingComplete())
-                .queryParam("userId", authResponse.getUserId())
-                .queryParam("email", authResponse.getEmail())
-                .queryParam("name", authResponse.getName())
-                .queryParam("role", authResponse.getUserRole().name())
-                .queryParam("picture", authResponse.getProfilePictureUrl())
+                .queryParam("code", exchangeCode)
                 .build().toUriString();
 
         response.sendRedirect(redirectUrl);
+    }
+
+    @GetMapping("/token")
+    public ResponseEntity<AuthResponse> exchangeCode(@RequestParam String code) {
+        String value = pendingTokens.remove(code);
+        if (value == null) {
+            return ResponseEntity.status(401).build();
+        }
+        String[] parts = value.split(";");
+        String jwt = parts[0];
+        boolean onboardingComplete = Boolean.parseBoolean(parts[1]);
+        return ResponseEntity.ok(authService.buildAuthResponse(jwt, onboardingComplete));
     }
 
     @GetMapping("/me")
