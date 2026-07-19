@@ -19,6 +19,8 @@ public interface EmailRepository extends JpaRepository<Email, Long> {
 
     boolean existsByGmailMessageId(String gmailMessageId);
 
+    Optional<Email> findByGmailMessageId(String gmailMessageId);
+
     Optional<Email> findByIdAndUserId(Long id, Long userId);
 
     Page<Email> findByUserIdOrderByReceivedAtDesc(Long userId, Pageable pageable);

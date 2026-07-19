@@ -114,9 +114,22 @@ public class GmailSyncService {
             }
 
             int newCount = 0;
+            int updatedCount = 0;
             for (Message msg : uniqueMessages) {
                 try {
-                    if (emailRepository.existsByGmailMessageId(msg.getId())) continue;
+                    // Check if already synced
+                    var existingOpt = emailRepository.findByGmailMessageId(msg.getId());
+                    if (existingOpt.isPresent()) {
+                        // Update read status if it changed in Gmail
+                        Email existing = existingOpt.get();
+                        boolean gmailIsRead = msg.getLabelIds() == null || !msg.getLabelIds().contains("UNREAD");
+                        if (gmailIsRead != existing.getIsRead()) {
+                            existing.setIsRead(gmailIsRead);
+                            emailRepository.save(existing);
+                            updatedCount++;
+                        }
+                        continue;
+                    }
 
                     Message fullMessage = fetchWithRetry(gmail, msg.getId());
                     if (fullMessage == null) continue;
@@ -331,6 +344,46 @@ public class GmailSyncService {
         if (payload.getParts() == null) return false;
         return payload.getParts().stream().anyMatch(p ->
                 p.getFilename() != null && !p.getFilename().isEmpty());
+    }
+
+    /**
+     * Propagates a "mark as read" action back to Gmail by removing the UNREAD label.
+     * Called asynchronously after the local DB is updated.
+     */
+    public void markReadInGmail(Long userId, String gmailMessageId) {
+        if (gmailMessageId == null || gmailMessageId.isBlank()) return;
+
+        try {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null || user.getGmailAccessToken() == null) return;
+            if ("mock-google-id-123456".equals(user.getGoogleId())) return; // skip mock users
+
+            // Refresh token if close to expiry
+            LocalDateTime now = LocalDateTime.now();
+            if (user.getTokenExpiry() == null || user.getTokenExpiry().isBefore(now.plusMinutes(5))) {
+                refreshUserAccessToken(user);
+            }
+
+            String accessToken  = tokenEncryptor.decrypt(user.getGmailAccessToken());
+            String refreshToken = tokenEncryptor.decrypt(user.getGmailRefreshToken());
+            Date   expiry       = user.getTokenExpiry() != null
+                    ? Date.from(user.getTokenExpiry().atZone(ZoneId.systemDefault()).toInstant())
+                    : new Date();
+
+            Gmail gmail = gmailConfig.buildGmailService(accessToken, refreshToken, expiry);
+
+            com.google.api.services.gmail.model.ModifyMessageRequest modifyRequest =
+                    new com.google.api.services.gmail.model.ModifyMessageRequest();
+            modifyRequest.setRemoveLabelIds(List.of("UNREAD"));
+
+            gmail.users().messages().modify("me", gmailMessageId, modifyRequest).execute();
+            log.info("Marked Gmail message {} as read for user {}", gmailMessageId, userId);
+
+        } catch (com.google.api.client.googleapis.json.GoogleJsonResponseException e) {
+            log.warn("Gmail API error marking message {} as read for user {}: {}", gmailMessageId, userId, e.getDetails());
+        } catch (GeneralSecurityException | IOException e) {
+            log.error("Failed to mark Gmail message {} as read: {}", gmailMessageId, e.getMessage());
+        }
     }
 
     private void sleep(long ms) {

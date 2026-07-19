@@ -59,8 +59,15 @@ public class EmailService {
     public void markRead(Long userId, Long emailId) {
         Email email = emailRepository.findByIdAndUserId(emailId, userId)
                 .orElseThrow(() -> new NexoraException("Email not found", 404));
-        email.setIsRead(true);
-        emailRepository.save(email);
+        if (!Boolean.TRUE.equals(email.getIsRead())) {
+            email.setIsRead(true);
+            emailRepository.save(email);
+            // Propagate mark-as-read back to Gmail asynchronously
+            if (email.getGmailMessageId() != null) {
+                java.util.concurrent.CompletableFuture.runAsync(() ->
+                        gmailSyncService.markReadInGmail(userId, email.getGmailMessageId()));
+            }
+        }
     }
 
     @Async
