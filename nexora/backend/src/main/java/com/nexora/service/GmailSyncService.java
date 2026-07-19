@@ -151,7 +151,7 @@ public class GmailSyncService {
             user.setLastSyncedAt(LocalDateTime.now());
             userRepository.save(user);
 
-            log.info("Synced {} new emails for user {}", newCount, userId);
+            log.info("Synced {} new emails, updated read-status of {} existing emails for user {}", newCount, updatedCount, userId);
 
         } catch (GeneralSecurityException | IOException e) {
             log.error("Gmail sync failed for user {}: {}", userId, e.getMessage());
