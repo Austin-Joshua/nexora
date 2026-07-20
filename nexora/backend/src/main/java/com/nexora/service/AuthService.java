@@ -383,8 +383,13 @@ public class AuthService {
         body.add("client_id", googleClientId);
         body.add("client_secret", googleClientSecret);
         
-        String effectiveRedirectUri = (dynamicRedirectUri != null && !dynamicRedirectUri.isEmpty()) 
-                ? dynamicRedirectUri : redirectUri;
+        String effectiveRedirectUri = redirectUri;
+        if (effectiveRedirectUri != null && effectiveRedirectUri.contains("localhost") 
+                && dynamicRedirectUri != null && !dynamicRedirectUri.contains("localhost")) {
+            effectiveRedirectUri = dynamicRedirectUri;
+        } else if (effectiveRedirectUri == null || effectiveRedirectUri.isEmpty()) {
+            effectiveRedirectUri = dynamicRedirectUri;
+        }
         body.add("redirect_uri", effectiveRedirectUri);
         body.add("grant_type", "authorization_code");
 

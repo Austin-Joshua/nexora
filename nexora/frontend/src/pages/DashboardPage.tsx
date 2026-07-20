@@ -8,17 +8,30 @@ import { DeadlineCard } from '../components/dashboard/DeadlineCard';
 import { ActionItemList } from '../components/dashboard/ActionItemList';
 import { StatCard } from '../components/common/StatCard';
 import { useAuthStore } from '../store/authStore';
+import { useEmails } from '../hooks/useEmails';
 import { CAT_COLORS, CATEGORY_LABELS } from '../utils/catColors';
-import { Mail, Clock, ListCheck, Tag } from 'lucide-react';
+import { Mail, Clock, ListCheck, Tag, RefreshCw } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuthStore();
+  const { sync, isSyncing } = useEmails();
   const navigate = useNavigate();
+
+  // Auto-trigger Gmail sync on first login (no lastSyncedAt means brand new)
+  const hasSynced = React.useRef(false);
+  React.useEffect(() => {
+    if (user && !user.lastSyncedAt && !hasSynced.current) {
+      hasSynced.current = true;
+      sync();
+    }
+  }, [user?.lastSyncedAt]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: dashboardApi.getSummary,
     staleTime: 300_000,
+    // Refetch after sync finishes
+    refetchInterval: isSyncing ? 3000 : false,
   });
 
   const hour = new Date().getHours();
@@ -31,6 +44,26 @@ export const DashboardPage: React.FC = () => {
       subtitle={`${greeting}, ${firstName}`}
     >
       <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Sync banner for first-time users */}
+        {isSyncing && (
+          <div
+            className="animate-fade-in"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 14px',
+              background: 'rgba(79,158,255,0.06)',
+              border: '1px solid rgba(79,158,255,0.18)',
+              borderRadius: 8,
+            }}
+          >
+            <RefreshCw size={13} style={{ color: '#4f9eff' }} className="animate-spin" />
+            <span style={{ fontSize: 12, color: '#4f9eff', fontWeight: 500 }}>
+              Syncing your Gmail inbox… This may take a moment on first login.
+            </span>
+          </div>
+        )}
         {isLoading ? (
           <DashboardSkeleton />
         ) : (

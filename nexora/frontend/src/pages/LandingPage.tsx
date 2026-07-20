@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, AlertTriangle, X, Zap } from 'lucide-react';
 import { CategoryTag } from '../components/common/CategoryTag';
 import { PriorityBars } from '../components/common/PriorityBars';
@@ -73,16 +73,6 @@ export const LandingPage: React.FC = () => {
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {/* DEV-only bypass — never visible in production build */}
-          {import.meta.env.DEV && (
-            <a
-              id="nav-bypass-btn"
-              href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'}/api/auth/bypass`}
-              style={{ fontSize: 11, color: '#4f9eff', fontWeight: 600, textDecoration: 'underline' }}
-            >
-              🔧 Dev bypass
-            </a>
-          )}
           <button
             id="landing-signin-btn"
             onClick={handleGoogleLogin}
@@ -391,8 +381,9 @@ export const LandingPage: React.FC = () => {
           © 2025 Nexora · AI Email Intelligence · React + Spring Boot
         </p>
         <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#3d5570' }}>
-          <span>Privacy</span>
-          <span>Terms</span>
+          <Link to="/privacy" style={{ color: '#3d5570', textDecoration: 'none' }} onMouseEnter={e => (e.currentTarget.style.color = '#7890a8')} onMouseLeave={e => (e.currentTarget.style.color = '#3d5570')}>Privacy Policy</Link>
+          <span>·</span>
+          <a href="mailto:austinjoshuamj@gmail.com" style={{ color: '#3d5570', textDecoration: 'none' }} onMouseEnter={e => (e.currentTarget.style.color = '#7890a8')} onMouseLeave={e => (e.currentTarget.style.color = '#3d5570')}>Contact</a>
         </div>
       </footer>
     </div>

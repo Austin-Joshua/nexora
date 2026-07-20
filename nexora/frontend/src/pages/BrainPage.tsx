@@ -36,7 +36,7 @@ export const BrainPage: React.FC = () => {
   }, []);
 
   return (
-    <AppShell title="Nexora Brain" subtitle="Natural language Q&A over your emails">
+    <AppShell title="Nexora Brain" subtitle="Natural language Q&A over your emails" noScroll>
       <div style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
         {/* History sidebar */}
         <div

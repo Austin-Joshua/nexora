@@ -15,25 +15,33 @@ export const EmailList: React.FC<EmailListProps> = ({ emails, isLoading, onEmail
 
   if (isLoading) {
     return (
-      <div className="space-y-0">
-        {Array.from({ length: 7 }).map((_, i) => (
+      <div>
+        {Array.from({ length: 8 }).map((_, i) => (
           <div
             key={i}
-            className="px-4 py-4 border-b"
-            style={{ borderColor: 'rgba(255,255,255,0.04)', animationDelay: `${i * 60}ms` }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              height: 48,
+              padding: '0 14px',
+              borderBottom: '1px solid var(--border)',
+              animationDelay: `${i * 50}ms`,
+            }}
+            className="animate-fade-in"
           >
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 skeleton rounded-xl flex-shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3 skeleton rounded-full w-2/3" />
-                <div className="h-2.5 skeleton rounded-full w-full" />
-                <div className="h-2.5 skeleton rounded-full w-1/2" />
-                <div className="flex gap-2 mt-3">
-                  <div className="h-4 w-20 skeleton rounded-full" />
-                  <div className="h-4 w-14 skeleton rounded-full" />
-                </div>
-              </div>
+            {/* Avatar skeleton */}
+            <div
+              className="skeleton"
+              style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0 }}
+            />
+            {/* Text skeleton */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div className="skeleton" style={{ height: 10, width: '45%', borderRadius: 4 }} />
+              <div className="skeleton" style={{ height: 9, width: '70%', borderRadius: 4 }} />
             </div>
+            {/* Badge skeleton */}
+            <div className="skeleton" style={{ height: 16, width: 56, borderRadius: 9999 }} />
           </div>
         ))}
       </div>
@@ -42,15 +50,36 @@ export const EmailList: React.FC<EmailListProps> = ({ emails, isLoading, onEmail
 
   if (emails.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 px-6 text-center animate-fade-in">
+      <div
+        className="animate-fade-in"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '48px 24px',
+          textAlign: 'center',
+        }}
+      >
         <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 animate-float"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+            background: 'var(--s1)',
+            border: '1px solid var(--border)',
+          }}
         >
-          <Inbox size={26} className="text-slate-600" />
+          <Inbox size={22} style={{ color: 'var(--t3)' }} />
         </div>
-        <p className="text-slate-400 font-bold text-sm">No emails found</p>
-        <p className="text-slate-600 text-xs mt-1.5 leading-relaxed">
+        <p style={{ color: 'var(--t2)', fontWeight: 700, fontSize: 13, margin: '0 0 4px' }}>
+          No emails found
+        </p>
+        <p style={{ color: 'var(--t3)', fontSize: 11, margin: 0, lineHeight: 1.5 }}>
           Try a different category filter or sync your inbox.
         </p>
       </div>
@@ -63,7 +92,7 @@ export const EmailList: React.FC<EmailListProps> = ({ emails, isLoading, onEmail
         <div
           key={email.id}
           className="animate-fade-in"
-          style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}
+          style={{ animationDelay: `${Math.min(i * 25, 200)}ms` }}
         >
           <EmailCard
             email={email}

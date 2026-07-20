@@ -91,7 +91,7 @@ export const InboxPage: React.FC = () => {
   };
 
   return (
-    <AppShell title="Inbox" subtitle="Your Gmail, intelligently organized">
+    <AppShell title="Inbox" subtitle="Your Gmail, intelligently organized" noScroll>
       <div style={{ display: 'flex', height: '100%', overflow: 'hidden', flexDirection: 'column' }}>
         {/* Tab bar */}
         <div

@@ -22,7 +22,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        String[] origins = corsAllowedOrigins.split(",");
+        String[] origins = java.util.Arrays.stream(corsAllowedOrigins.split(","))
+                .map(s -> s.trim())
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
         registry.addEndpoint("/ws")
                 .setAllowedOrigins(origins)
                 .withSockJS();

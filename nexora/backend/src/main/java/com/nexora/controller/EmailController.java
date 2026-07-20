@@ -40,8 +40,8 @@ public class EmailController {
 
     @PostMapping("/sync")
     public ResponseEntity<Map<String, String>> syncEmails(@AuthenticationPrincipal User user) {
-        emailService.triggerSync(user.getId());
-        return ResponseEntity.ok(Map.of("message", "Sync triggered successfully"));
+        emailService.syncInbox(user.getId());
+        return ResponseEntity.ok(Map.of("message", "Sync completed successfully"));
     }
 
     @GetMapping("/categories")

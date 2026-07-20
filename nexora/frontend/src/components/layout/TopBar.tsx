@@ -4,6 +4,7 @@ import { useNotificationStore } from '../../store/notificationStore';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { useEmails } from '../../hooks/useEmails';
 import { useEmailStore } from '../../store/emailStore';
+import { useAuthStore } from '../../store/authStore';
 
 interface TopBarProps {
   title: string;
@@ -37,8 +38,10 @@ function useRelativeTime(date: Date | null) {
 export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
   const { unreadCount, togglePanel, isPanelOpen } = useNotificationStore();
   const { sync, isSyncing } = useEmails();
-  const { setSearchQuery, searchQuery, lastSyncedAt } = useEmailStore();
+  const { setSearchQuery, searchQuery } = useEmailStore();
+  const { user } = useAuthStore();
   const [searchFocused, setSearchFocused] = useState(false);
+  const lastSyncedAt = user?.lastSyncedAt ? new Date(user.lastSyncedAt) : null;
   const lastSyncLabel = useRelativeTime(lastSyncedAt);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -174,7 +177,30 @@ export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
             <CheckCircle size={8} />
             ✓ Synced {lastSyncLabel}
           </button>
-        ) : null}
+        ) : (
+          <button
+            id="sync-btn"
+            onClick={() => sync()}
+            title="Click to sync Gmail"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '2px 8px',
+              borderRadius: 9999,
+              background: 'rgba(240,192,48,0.10)',
+              border: '1px solid rgba(240,192,48,0.20)',
+              color: '#f0c030',
+              fontSize: 9,
+              fontFamily: 'JetBrains Mono, monospace',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+            }}
+          >
+            <RefreshCw size={8} />
+            Sync Gmail
+          </button>
+        )}
 
         {/* Theme toggle */}
         <button

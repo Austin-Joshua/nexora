@@ -12,6 +12,7 @@ import { AuthCallbackPage }  from './pages/AuthCallbackPage';
 import { EmailDetailPage }   from './pages/EmailDetailPage';
 import { AnalyticsPage }     from './pages/AnalyticsPage';
 import { ErrorBoundary }     from './components/common/ErrorBoundary';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
@@ -32,6 +33,7 @@ function App() {
         <Route path="/notifications"   element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
         <Route path="/settings"        element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
         <Route path="/analytics"       element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
+        <Route path="/privacy"          element={<PrivacyPolicyPage />} />
         <Route path="*"                element={<Navigate to="/" replace />} />
       </Routes>
     </ErrorBoundary>

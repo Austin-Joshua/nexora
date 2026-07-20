@@ -147,6 +147,21 @@ public class GmailSyncService {
                 }
             }
 
+            // Auto-detect user profession/role on first sync (if currently STUDENT and never synced before)
+            boolean isFirstSync = user.getLastSyncedAt() == null;
+            if (isFirstSync && user.getUserRole() == User.UserRole.STUDENT) {
+                try {
+                    List<Email> userEmails = emailRepository.findTop20ByUserIdOrderByReceivedAtDesc(user.getId());
+                    if (!userEmails.isEmpty()) {
+                        User.UserRole detectedRole = classificationService.detectUserProfession(userEmails);
+                        user.setUserRole(detectedRole);
+                        log.info("Auto-detected and updated user {} role to: {}", user.getId(), detectedRole);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to auto-detect user {} profession: {}", user.getId(), e.getMessage());
+                }
+            }
+
             // Update last sync time
             user.setLastSyncedAt(LocalDateTime.now());
             userRepository.save(user);

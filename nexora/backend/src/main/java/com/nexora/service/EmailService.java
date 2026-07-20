@@ -75,6 +75,10 @@ public class EmailService {
         gmailSyncService.syncInbox(userId);
     }
 
+    public void syncInbox(Long userId) {
+        gmailSyncService.syncInbox(userId);
+    }
+
     public Map<String, Long> getCategoryCounts(Long userId) {
         List<Object[]> results = emailRepository.countByUserIdGroupByCategory(userId);
         Map<String, Long> counts = new LinkedHashMap<>();

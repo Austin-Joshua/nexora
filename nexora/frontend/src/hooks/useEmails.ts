@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { emailApi } from '../api/emailApi';
+import { authApi } from '../api/authApi';
 import { useEmailStore } from '../store/emailStore';
+import { useAuthStore } from '../store/authStore';
 
 export function useEmails(page = 0, size = 20) {
-  const { activeCategory, activePriority, searchQuery, setLastSyncedAt } = useEmailStore();
+  const { activeCategory, activePriority, searchQuery } = useEmailStore();
+  const { setLastSyncedAt, setUser } = useAuthStore();
   const queryClient = useQueryClient();
 
   const params = {
@@ -33,7 +36,19 @@ export function useEmails(page = 0, size = 20) {
       queryClient.invalidateQueries({ queryKey: ['email-categories'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
       queryClient.invalidateQueries({ queryKey: ['analytics-emails'] });
-      setLastSyncedAt(new Date());
+      setLastSyncedAt(new Date().toISOString());
+      authApi.getCurrentUser().then((updatedUser) => {
+        setUser({
+          userId: updatedUser.userId,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          profilePictureUrl: updatedUser.profilePictureUrl ?? undefined,
+          userRole: updatedUser.userRole,
+          onboardingComplete: updatedUser.onboardingComplete,
+          calendarSyncEnabled: updatedUser.calendarSyncEnabled ?? true,
+          lastSyncedAt: updatedUser.lastSyncedAt,
+        });
+      }).catch((err) => console.error("Failed to fetch updated user role:", err));
     },
     onError: (error: any) => {
       const errorMsg = error.response?.data?.message || error.message || "Sync failed. Please check your Google permissions.";

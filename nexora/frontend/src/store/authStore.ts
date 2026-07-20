@@ -9,6 +9,7 @@ interface AuthState {
   setUser: (user: User) => void;
   setToken: (token: string) => void;
   setUserRole: (role: UserRole) => void;
+  setLastSyncedAt: (date: string) => void;
   logout: () => void;
 }
 
@@ -29,6 +30,11 @@ export const useAuthStore = create<AuthState>()(
       setUserRole: (role) =>
         set((state) => ({
           user: state.user ? { ...state.user, userRole: role } : null,
+        })),
+
+      setLastSyncedAt: (date) =>
+        set((state) => ({
+          user: state.user ? { ...state.user, lastSyncedAt: date } : null,
         })),
 
       logout: () => {

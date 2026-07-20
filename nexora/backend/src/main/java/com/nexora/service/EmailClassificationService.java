@@ -346,4 +346,70 @@ Body:
             return EmailAction.ActionType.OTHER;
         }
     }
+
+    public User.UserRole detectUserProfession(List<Email> emails) {
+        if (emails == null || emails.isEmpty()) {
+            return User.UserRole.STUDENT;
+        }
+
+        StringBuilder context = new StringBuilder();
+        for (int i = 0; i < Math.min(emails.size(), 20); i++) {
+            Email email = emails.get(i);
+            context.append("Subject: ").append(email.getSubject()).append("\n")
+                   .append("Sender: ").append(email.getSenderName()).append(" (").append(email.getSenderEmail()).append(")\n")
+                   .append("Snippet: ").append(email.getBodySnippet()).append("\n\n");
+        }
+
+        if (geminiConfig.isConfigured()) {
+            try {
+                String systemPrompt = """
+You are Nexora's user profile analyzer. Based on the recent emails of the user, determine their most likely profession or role.
+Choose ONLY from these roles: STUDENT, PROFESSOR, IT_EMPLOYEE, HR_PROFESSIONAL, MANAGER, FREELANCER.
+Respond with a valid JSON object containing exactly one key "role". Example: {"role": "STUDENT"}
+Do not include any explanation or markdown.
+""";
+                String response = callGemini(systemPrompt, context.toString());
+                JsonNode node = parseJson(response);
+                if (node != null && node.has("role")) {
+                    String roleStr = node.get("role").asText().toUpperCase();
+                    return User.UserRole.valueOf(roleStr);
+                }
+            } catch (Exception e) {
+                log.error("AI profession detection failed, using fallback: {}", e.getMessage());
+            }
+        }
+
+        String combinedText = context.toString().toLowerCase();
+        int studentScore = countMatches(combinedText, "assignment", "course", "professor", "class", "exam", "placement", "internship", "grading", "homework", "student");
+        int professorScore = countMatches(combinedText, "syllabus", "lecture", "faculty", "grant", "research paper", "grading", "phd", "academic", "university office");
+        int hrScore = countMatches(combinedText, "resume", "candidate", "interview", "hiring", "onboarding", "offer letter", "payroll", "recruiter", "talent acquisition");
+        int itScore = countMatches(combinedText, "ticket", "server", "deployment", "bug", "jira", "aws", "git", "database", "api", "incident", "dns");
+        int managerScore = countMatches(combinedText, "approvals", "budget", "project sync", "quarterly", "team roadmap", "one-on-one", "kpi", "status update");
+        int freelancerScore = countMatches(combinedText, "proposal", "contract", "invoice", "client", "gig", "payment milestone", "brief", "freelance");
+
+        log.info("Profession Scores -> STUDENT: {}, PROFESSOR: {}, HR: {}, IT: {}, MANAGER: {}, FREELANCER: {}",
+                studentScore, professorScore, hrScore, itScore, managerScore, freelancerScore);
+
+        int max = Math.max(studentScore, Math.max(professorScore, Math.max(hrScore, Math.max(itScore, Math.max(managerScore, freelancerScore)))));
+        if (max == 0) return User.UserRole.STUDENT;
+
+        if (max == studentScore) return User.UserRole.STUDENT;
+        if (max == professorScore) return User.UserRole.PROFESSOR;
+        if (max == hrScore) return User.UserRole.HR_PROFESSIONAL;
+        if (max == itScore) return User.UserRole.IT_EMPLOYEE;
+        if (max == managerScore) return User.UserRole.MANAGER;
+        return User.UserRole.FREELANCER;
+    }
+
+    private int countMatches(String text, String... keywords) {
+        int count = 0;
+        for (String word : keywords) {
+            int index = 0;
+            while ((index = text.indexOf(word, index)) != -1) {
+                count++;
+                index += word.length();
+            }
+        }
+        return count;
+    }
 }
