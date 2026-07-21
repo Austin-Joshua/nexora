@@ -5,6 +5,8 @@ export type EmailCategory =
 
 export type Priority = 'HIGH' | 'MEDIUM' | 'LOW';
 
+export type EmailReaction = 'NONE' | 'DONE' | 'IMPORTANT' | 'LATER' | 'IGNORE' | 'SNOOZED';
+
 export type ActionType = 'REGISTER' | 'REPLY' | 'SUBMIT' | 'UPLOAD' | 'REVIEW' | 'ATTEND' | 'OTHER';
 
 export interface ActionItem {
@@ -29,6 +31,7 @@ export interface Email {
   hasAttachments: boolean;
   category: EmailCategory;
   priority: Priority;
+  reaction?: EmailReaction;
   aiSummary?: string;
   aiActionItems?: string;
   deadlineDetected?: string;

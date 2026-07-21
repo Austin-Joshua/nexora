@@ -5,6 +5,7 @@ import com.nexora.exception.NexoraException;
 import com.nexora.model.Email;
 import com.nexora.model.Email.EmailCategory;
 import com.nexora.model.Email.Priority;
+import com.nexora.model.Email.Reaction;
 import com.nexora.repository.EmailRepository;
 import com.nexora.dto.response.EmailResponse;
 import lombok.RequiredArgsConstructor;
@@ -67,6 +68,17 @@ public class EmailService {
                 java.util.concurrent.CompletableFuture.runAsync(() ->
                         gmailSyncService.markReadInGmail(userId, email.getGmailMessageId()));
             }
+        }
+    }
+
+    public void updateReaction(Long userId, Long emailId, String reaction) {
+        Email email = emailRepository.findByIdAndUserId(emailId, userId)
+                .orElseThrow(() -> new NexoraException("Email not found", 404));
+        try {
+            email.setReaction(Reaction.valueOf(reaction.toUpperCase()));
+            emailRepository.save(email);
+        } catch (IllegalArgumentException ex) {
+            throw new NexoraException("Invalid reaction: " + reaction, 400);
         }
     }
 
@@ -139,6 +151,7 @@ public class EmailService {
                 .hasAttachments(email.getHasAttachments())
                 .category(email.getCategory())
                 .priority(email.getPriority())
+                .reaction(email.getReaction() != null ? email.getReaction() : Reaction.NONE)
                 .aiSummary(email.getAiSummary())
                 .aiActionItems(email.getAiActionItems())
                 .deadlineDetected(email.getDeadlineDetected())
@@ -203,5 +216,13 @@ public class EmailService {
                 + "I'll review this and get back to you shortly.\n\n"
                 + "Regards,\n[Your Name]";
     }
-}
 
+    public void sendReply(Long userId, Long emailId, String replyBody) {
+        Email email = emailRepository.findByIdAndUserId(emailId, userId)
+                .orElseThrow(() -> new NexoraException("Email not found", 404));
+        log.info("Sending reply for user {} on email {}: {}", userId, emailId, replyBody);
+        // Persist sent status / trigger Gmail API sending
+        email.setReaction(Reaction.DONE);
+        emailRepository.save(email);
+    }
+}

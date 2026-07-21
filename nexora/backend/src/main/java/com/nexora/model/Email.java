@@ -72,6 +72,10 @@ public class Email {
     @Builder.Default
     private Priority priority = Priority.MEDIUM;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Reaction reaction = Reaction.NONE;
+
     @Column(name = "ai_summary", columnDefinition = "TEXT")
     private String aiSummary;
 
@@ -104,5 +108,9 @@ public class Email {
 
     public enum Priority {
         HIGH, MEDIUM, LOW
+    }
+
+    public enum Reaction {
+        NONE, DONE, IMPORTANT, LATER, IGNORE, SNOOZED
     }
 }

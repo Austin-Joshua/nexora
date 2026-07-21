@@ -1,315 +1,294 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Gmail Design Tokens ─── */
-:root {
-  --bg:            #ffffff;   /* page background */
-  --surface:       #f6f8fc;   /* sidebar / hover surface */
-  --surface-2:     #eef2fa;   /* selected row background */
-  --border:        #e0e3e7;
-  --border-strong: #c7ccd1;
-  --text-1:        #1f1f1f;   /* primary text */
-  --text-2:        #5f6368;   /* secondary text, timestamps, snippets */
-  --text-3:        #80868b;   /* muted */
-  --accent:        #1a73e8;   /* Gmail blue — links, active states, primary buttons */
-  --accent-soft:   #e8f0fe;   /* active nav pill background */
-  --unread-dot:    #1a73e8;
-  --star:          #f2b400;
-  --danger:        #d93025;
-  --success:       #188038;
-
-  /* Nexora AI accents */
-  --cat-assignment:   #7c3aed;
-  --cat-hackathon:    #f97316;
-  --cat-placement:    #16a34a;
-  --cat-meeting:      #9333ea;
-  --cat-attendance:   #dc2626;
-  --cat-announcement: #ca8a04;
-  --cat-research:     #0891b2;
-  --cat-personal:     #64748b;
-  --priority-high:    #d93025;
-  --priority-medium:  #f2b400;
-  --priority-low:     #188038;
-
-  /* Layout sizing */
-  --sidebar-width: 256px;
-  --sidebar-collapsed-width: 72px;
-  --topbar-height: 64px;
-
-  /* Legacy aliases for backwards compatibility */
-  --s1: var(--surface);
-  --s2: var(--surface-2);
-  --t1: var(--text-1);
-  --t2: var(--text-2);
-  --t3: var(--text-3);
-  --gold: var(--star);
-  --blue: var(--accent);
-  --high: var(--priority-high);
-  --med: var(--priority-medium);
-  --low: var(--priority-low);
-
-  /* Transitions */
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-html.dark, .dark {
-  --bg:            #121212;
-  --surface:       #1e1f20;
-  --surface-2:     #2a2d2f;
-  --border:        #3c4043;
-  --border-strong: #5f6368;
-  --text-1:        #e8eaed;
-  --text-2:        #9aa0a6;
-  --text-3:        #80868b;
-  --accent:        #8ab4f8;
-  --accent-soft:   #2d3e50;
-  --unread-dot:    #8ab4f8;
-}
-
 @layer base {
-  * {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
+  :root {
+    /* Base Colors - Ink + Ember */
+    --ink-950:    #0b0f19;
+    --ink-900:    #12172a;
+    --paper:      #fafaf9;
+    --paper-2:    #f2f1ed;
+    --line:       #e7e5df;
+    --line-strong:#d4d1c8;
+
+    /* Text Colors */
+    --text-1:     #14161f;
+    --text-2:     #5b5f6e;
+    --text-3:     #8b8f9c;
+
+    /* Signature Accent Pair */
+    --ember:      #ff5a36;
+    --ember-soft: #ffe4da;
+    --violet:     #6c4cff;
+    --violet-soft:#ece6ff;
+
+    /* Semantic Colors */
+    --success:    #1fa669;
+    --warn:       #f2a900;
+    --danger:     #e0332f;
+
+    /* Category Palette */
+    --cat-assignment:   #6c4cff;
+    --cat-hackathon:    #ff5a36;
+    --cat-placement:    #1fa669;
+    --cat-meeting:      #cc46c9;
+    --cat-attendance:   #e0332f;
+    --cat-announcement: #f2a900;
+    --cat-research:     #0e9fb0;
+    --cat-personal:     #7c8091;
+
+    /* Semantic Compatibility Aliases */
+    --bg:         var(--paper);
+    --surface:    var(--paper-2);
+    --surface-2:  #e7e5df;
+    --border:     var(--line);
+    --border-strong: var(--line-strong);
+    --accent:     var(--ember);
+    --accent-soft:var(--ember-soft);
+    --star:       var(--warn);
+
+    /* Radius System */
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 20px;
+    --r-full: 9999px;
+
+    /* Motion System */
+    --transition-spring: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Layout & Spacing */
+    --spacing-page: 32px;
+    --spacing-gap: 24px;
+    --spacing-card: 20px;
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 72px;
   }
 
-  html {
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-family: 'Google Sans', Roboto, Arial, sans-serif;
+  html.dark {
+    --ink-950:    #05070c;
+    --ink-900:    #0b0f19;
+    --paper:      #0e1016;
+    --paper-2:    #171a24;
+    --line:       #262a38;
+    --line-strong:#343849;
+    --text-1:     #f4f4f2;
+    --text-2:     #a3a7b5;
+    --text-3:     #6c7080;
+    --ember-soft: rgba(255, 90, 54, 0.16);
+    --violet-soft:rgba(108, 76, 255, 0.18);
+    --surface-2:  #212534;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
 
   body {
+    margin: 0;
     background-color: var(--bg);
     color: var(--text-1);
-    min-height: 100vh;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    font-family: 'Google Sans', Roboto, Arial, sans-serif;
-    margin: 0;
+    font-family: 'Cabinet Grotesk', 'General Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
-  /* Scrollbar — Gmail style */
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    border-radius: 4px;
-    background: var(--border-strong);
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-3);
-  }
-
-  ::selection {
-    background: var(--accent-soft);
-    color: var(--accent);
+  /* Accessibility Focus Rings */
+  :focus-visible {
+    outline: 2px solid var(--ember);
+    outline-offset: 2px;
+    border-radius: var(--r-sm);
   }
 }
 
-@layer components {
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
 
-  /* ─── Gmail Surface Cards ─── */
-  .surface {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-  .surface-elevated {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
+/* Base Component Utility Classes */
+.btn-ember {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--r-full);
+  background: var(--ember);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-spring);
+  box-shadow: 0 4px 14px rgba(255, 90, 54, 0.25);
+  user-select: none;
+}
+.btn-ember:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(255, 90, 54, 0.35);
+}
+.btn-ember:active {
+  transform: translateY(0) scale(0.98);
+}
 
-  /* ─── Section label (Gmail style sentence-case sans-serif) ─── */
-  .section-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-3);
-  }
+.btn-violet {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--r-full);
+  background: var(--violet);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-spring);
+  box-shadow: 0 4px 14px rgba(108, 76, 255, 0.25);
+  user-select: none;
+}
+.btn-violet:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(108, 76, 255, 0.35);
+}
+.btn-violet:active {
+  transform: translateY(0) scale(0.98);
+}
 
-  /* ─── Gmail Compose Button ─── */
-  .btn-gmail-compose {
-    background: var(--bg);
-    color: var(--text-1);
-    font-weight: 500;
-    border-radius: 16px;
-    padding: 0 24px;
-    height: 56px;
-    border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, background-color 0.2s ease;
-    font-family: 'Google Sans', Roboto, sans-serif;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .btn-gmail-compose:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.16), 0 2px 4px rgba(0,0,0,0.12);
-    background-color: var(--surface);
-  }
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--r-full);
+  background: var(--ember);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-spring);
+  box-shadow: 0 4px 14px rgba(255, 90, 54, 0.25);
+  user-select: none;
+}
 
-  /* ─── Gmail Sidebar Nav Row (rounded-right pill) ─── */
-  .gmail-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    height: 36px;
-    padding: 0 16px 0 24px;
-    border-radius: 0 18px 18px 0;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-    color: var(--text-1);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    user-select: none;
-    margin-right: 12px;
-  }
-  .gmail-nav-item:hover {
-    background-color: var(--surface);
-  }
-  .gmail-nav-item.active {
-    background-color: var(--accent-soft);
-    color: var(--accent);
-    font-weight: 700;
-  }
-  .gmail-nav-item.active svg {
-    color: var(--accent);
-  }
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: var(--text-1);
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  transition: var(--transition-spring);
+}
+.btn-outline:hover {
+  background: var(--surface);
+  border-color: var(--text-2);
+}
 
-  /* Collapsed Nav Item */
-  .gmail-nav-item-collapsed {
-    width: 48px;
-    height: 32px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--text-2);
-    text-decoration: none;
-    margin: 4px auto;
-    transition: background-color 0.15s ease;
-  }
-  .gmail-nav-item-collapsed:hover {
-    background-color: var(--surface);
-  }
-  .gmail-nav-item-collapsed.active {
-    background-color: var(--accent-soft);
-    color: var(--accent);
-  }
+.card-paper {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--spacing-card);
+  transition: var(--transition-smooth);
+}
+.card-paper:hover {
+  border-color: var(--line-strong);
+}
 
-  /* ─── Buttons ─── */
-  .btn-accent {
-    background: var(--accent);
-    color: #ffffff;
-    font-weight: 500;
-    border-radius: 4px;
-    padding: 8px 16px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.15s ease;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .btn-accent:hover {
-    opacity: 0.9;
-  }
+.surface-elevated {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--spacing-card);
+  transition: var(--transition-smooth);
+}
 
-  .btn-outline {
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--border-strong);
-    border-radius: 4px;
-    padding: 6px 14px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: all 0.15s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+/* Pulse Ring Animation Motif */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 90, 54, 0.7);
   }
-  .btn-outline:hover {
-    background: var(--surface);
-    border-color: var(--accent);
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(255, 90, 54, 0);
   }
-
-  /* ─── Gmail Row Anatomy ─── */
-  .gmail-row {
-    display: flex;
-    align-items: center;
-    height: 44px;
-    padding: 0 16px;
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
-    background: var(--bg);
-    transition: background-color 0.15s ease;
-    font-size: 13px;
-    color: var(--text-1);
-    position: relative;
-    user-select: none;
-  }
-  .gmail-row:hover {
-    background: var(--surface);
-    box-shadow: inset 1px 0 0 var(--accent);
-  }
-  .gmail-row.unread {
-    background: var(--bg);
-    font-weight: 700;
-  }
-  .gmail-row.selected {
-    background: var(--surface-2);
-  }
-  .gmail-row .actions-cell {
-    display: none;
-  }
-  .gmail-row:hover .actions-cell {
-    display: flex;
-  }
-  .gmail-row:hover .date-cell {
-    display: none;
-  }
-
-  /* ─── Underline Category Tabs ─── */
-  .gmail-tab {
-    height: 48px;
-    padding: 0 24px;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-2);
-    border: none;
-    border-bottom: 3px solid transparent;
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .gmail-tab:hover {
-    background: var(--surface);
-    color: var(--text-1);
-  }
-  .gmail-tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-    font-weight: 700;
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 90, 54, 0);
   }
 }
 
-/* ─── Keyframe Animations ─── */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
+.pulse-ring-active {
+  animation: pulse-ring 2s infinite cubic-bezier(0.45, 0, 0.55, 1);
 }
-.animate-fade-in { animation: fade-in 0.2s var(--transition-fast) both; }
+
+/* Skeleton Shimmer Gradient */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s infinite ease-in-out;
+  border-radius: var(--r-sm);
+}
+
+/* Spring Entrance Stagger Animations */
+@keyframes spring-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-spring-up {
+  animation: spring-slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Prefers Reduced Motion override */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pulse-ring-active, .skeleton {
+    animation: none !important;
+  }
+}

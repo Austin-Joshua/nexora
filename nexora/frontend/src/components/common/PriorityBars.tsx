@@ -1,28 +1,30 @@
 import React from 'react';
+import type { Priority } from '../../types/Email';
 
 interface PriorityBarsProps {
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priority: Priority;
+  size?: number;
 }
 
-/**
- * Signature component: 3 vertical bars like a cell signal indicator.
- * Heights: 4px, 7px, 10px
- * HIGH: 3 bars red | MEDIUM: 2 bars gold | LOW: 1 bar green
- */
-export const PriorityBars: React.FC<PriorityBarsProps> = ({ priority }) => {
-  const filled = priority === 'HIGH' ? 3 : priority === 'MEDIUM' ? 2 : 1;
-  const color  = priority === 'HIGH' ? '#f05050' : priority === 'MEDIUM' ? '#f0c030' : '#40c070';
+export const PriorityBars: React.FC<PriorityBarsProps> = ({ priority, size = 12 }) => {
+  const bars = priority === 'HIGH' ? 3 : priority === 'MEDIUM' ? 2 : 1;
+  const color = priority === 'HIGH' ? 'var(--danger)' : priority === 'MEDIUM' ? 'var(--warn)' : 'var(--success)';
+  const label = priority === 'HIGH' ? 'High Priority' : priority === 'MEDIUM' ? 'Medium Priority' : 'Low Priority';
+
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2 }} title={priority}>
-      {([4, 7, 10] as const).map((h, i) => (
-        <div
-          key={i}
+    <div
+      style={{ display: 'inline-flex', alignItems: 'flex-end', gap: 2, height: size }}
+      title={label}
+    >
+      {[1, 2, 3].map((b) => (
+        <span
+          key={b}
           style={{
-            width: 3,
-            height: h,
-            background: i < filled ? color : 'var(--border)',
+            width: Math.max(3, Math.round(size / 4)),
+            height: `${b * 33}%`,
             borderRadius: 1,
-            flexShrink: 0,
+            backgroundColor: b <= bars ? color : 'var(--line-strong)',
+            transition: 'background-color 0.15s ease',
           }}
         />
       ))}

@@ -2,6 +2,7 @@ package com.nexora.dto.response;
 
 import com.nexora.model.Email.EmailCategory;
 import com.nexora.model.Email.Priority;
+import com.nexora.model.Email.Reaction;
 import com.nexora.model.EmailAction;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ public class EmailResponse {
     private Boolean hasAttachments;
     private EmailCategory category;
     private Priority priority;
+    private Reaction reaction;
     private String aiSummary;
     private String aiActionItems;
     private LocalDateTime deadlineDetected;
@@ -32,7 +34,7 @@ public class EmailResponse {
 
     public EmailResponse(Long id, String gmailMessageId, String gmailThreadId, String senderName, String senderEmail,
                          String subject, String bodySnippet, String bodyFull, LocalDateTime receivedAt, Boolean isRead,
-                         Boolean hasAttachments, EmailCategory category, Priority priority, String aiSummary,
+                         Boolean hasAttachments, EmailCategory category, Priority priority, Reaction reaction, String aiSummary,
                          String aiActionItems, LocalDateTime deadlineDetected, Boolean isDeadlineAddedToCalendar,
                          List<ActionItemDto> actions, LocalDateTime createdAt) {
         this.id = id;
@@ -48,6 +50,7 @@ public class EmailResponse {
         this.hasAttachments = hasAttachments;
         this.category = category;
         this.priority = priority;
+        this.reaction = reaction;
         this.aiSummary = aiSummary;
         this.aiActionItems = aiActionItems;
         this.deadlineDetected = deadlineDetected;
@@ -158,6 +161,14 @@ public class EmailResponse {
 
     public void setPriority(Priority priority) {
         this.priority = priority;
+    }
+
+    public Reaction getReaction() {
+        return reaction;
+    }
+
+    public void setReaction(Reaction reaction) {
+        this.reaction = reaction;
     }
 
     public String getAiSummary() {
@@ -328,6 +339,7 @@ public class EmailResponse {
         private Boolean hasAttachments;
         private EmailCategory category;
         private Priority priority;
+        private Reaction reaction;
         private String aiSummary;
         private String aiActionItems;
         private LocalDateTime deadlineDetected;
@@ -402,6 +414,11 @@ public class EmailResponse {
             return this;
         }
 
+        public EmailResponseBuilder reaction(Reaction reaction) {
+            this.reaction = reaction;
+            return this;
+        }
+
         public EmailResponseBuilder aiSummary(String aiSummary) {
             this.aiSummary = aiSummary;
             return this;
@@ -435,7 +452,7 @@ public class EmailResponse {
         public EmailResponse build() {
             return new EmailResponse(this.id, this.gmailMessageId, this.gmailThreadId, this.senderName, this.senderEmail,
                     this.subject, this.bodySnippet, this.bodyFull, this.receivedAt, this.isRead, this.hasAttachments,
-                    this.category, this.priority, this.aiSummary, this.aiActionItems, this.deadlineDetected,
+                    this.category, this.priority, this.reaction, this.aiSummary, this.aiActionItems, this.deadlineDetected,
                     this.isDeadlineAddedToCalendar, this.actions, this.createdAt);
         }
     }

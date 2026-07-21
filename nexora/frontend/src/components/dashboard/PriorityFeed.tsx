@@ -3,28 +3,26 @@ import type { Email } from '../../types/Email';
 import { formatRelative } from '../../utils/formatDate';
 import { CategoryTag } from '../common/CategoryTag';
 import { Sparkles } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface PriorityFeedProps {
   emails: Email[];
+  onEmailClick?: (email: Email) => void;
 }
 
-export const PriorityFeed: React.FC<PriorityFeedProps> = ({ emails }) => {
-  const navigate = useNavigate();
-
+export const PriorityFeed: React.FC<PriorityFeedProps> = ({ emails, onEmailClick }) => {
   return (
-    <div className="surface-elevated" style={{ overflow: 'hidden' }}>
+    <div className="card-paper" style={{ overflow: 'hidden', padding: 0 }}>
       {/* Header */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          padding: '12px 16px',
-          borderBottom: '1px solid var(--border)',
+          padding: '14px 20px',
+          borderBottom: '1px solid var(--line)',
         }}
       >
-        <Sparkles size={16} style={{ color: 'var(--accent)' }} />
+        <Sparkles size={18} style={{ color: 'var(--ember)' }} />
         <span className="section-label" style={{ flex: 1 }}>PRIORITY FEED</span>
         <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
           {emails.length} urgent
@@ -41,21 +39,21 @@ export const PriorityFeed: React.FC<PriorityFeedProps> = ({ emails }) => {
           emails.map((email) => (
             <div
               key={email.id}
-              onClick={() => navigate(`/inbox?emailId=${email.id}`)}
+              onClick={() => onEmailClick?.(email)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                padding: '10px 16px',
-                borderBottom: '1px solid var(--border)',
+                padding: '12px 20px',
+                borderBottom: '1px solid var(--line)',
                 cursor: 'pointer',
-                transition: 'background-color 0.15s ease',
+                transition: 'var(--transition-smooth)',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface)'; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--paper-2)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 13, fontWeight: email.isRead ? 400 : 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <p style={{ fontSize: 14, fontWeight: email.isRead ? 400 : 700, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {email.subject || '(no subject)'}
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--text-2)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

@@ -1,13 +1,28 @@
 {
-  "name": "Nexora",
+  "name": "Nexora — AI Email Intelligence",
   "short_name": "Nexora",
-  "description": "AI email intelligence for students",
+  "description": "Smart, role-aware Gmail intelligence, deadlines, and AI answers.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#080c12",
-  "theme_color": "#f0c030",
+  "orientation": "any",
+  "background_color": "#fafaf9",
+  "theme_color": "#ff5a36",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Inbox",
+      "short_name": "Inbox",
+      "description": "Open your Gmail inbox",
+      "url": "/inbox"
+    },
+    {
+      "name": "Ask Brain",
+      "short_name": "Brain",
+      "description": "Ask Nexora Brain",
+      "url": "/brain"
+    }
   ]
 }

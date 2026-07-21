@@ -57,19 +57,22 @@ public class EmailController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Returns a ranked list of senders with email count and latest subject.
-     * Used by the frontend "Senders" tab in the inbox.
-     */
+    @PatchMapping("/{id}/reaction")
+    public ResponseEntity<Void> updateReaction(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String reaction = body.getOrDefault("reaction", "NONE");
+        emailService.updateReaction(user.getId(), id, reaction);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/by-sender")
     public ResponseEntity<List<SenderSummaryResponse>> getEmailsBySender(
             @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(emailService.getSenderSummary(user.getId()));
     }
 
-    /**
-     * Returns paginated emails from a specific sender email address.
-     */
     @GetMapping("/sender/{senderEmail}")
     public ResponseEntity<Page<EmailResponse>> getEmailsFromSender(
             @AuthenticationPrincipal User user,
@@ -95,5 +98,15 @@ public class EmailController {
         String style = body.getOrDefault("style", "PROFESSIONAL");
         String draft = emailService.draftReply(user.getId(), id, style);
         return ResponseEntity.ok(Map.of("draft", draft));
+    }
+
+    @PostMapping("/{id}/reply")
+    public ResponseEntity<Map<String, String>> sendReply(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+        String replyBody = body.getOrDefault("replyBody", "");
+        emailService.sendReply(user.getId(), id, replyBody);
+        return ResponseEntity.ok(Map.of("message", "Reply sent successfully"));
     }
 }
