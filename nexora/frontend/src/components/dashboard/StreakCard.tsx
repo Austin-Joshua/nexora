@@ -48,7 +48,7 @@ export const StreakCard: React.FC = () => {
         alignItems: 'center',
         gap: 16,
         background: 'linear-gradient(135deg, var(--paper-2), var(--ember-soft))',
-        border: '1px solid rgba(255, 90, 54, 0.25)',
+        border: '1px solid rgba(26, 115, 232, 0.25)',
       }}
     >
       <div
@@ -61,7 +61,7 @@ export const StreakCard: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 4px 14px rgba(255, 90, 54, 0.3)',
+          boxShadow: '0 4px 14px rgba(26, 115, 232, 0.3)',
           flexShrink: 0,
         }}
       >
@@ -70,7 +70,7 @@ export const StreakCard: React.FC = () => {
 
       <div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--ember)', fontFamily: 'Cabinet Grotesk, sans-serif' }}>
+          <span style={{ fontSize: 24, fontWeight: 900, color: 'var(--ember)', fontFamily: 'Google Sans, Roboto, sans-serif' }}>
             {streak} Day{streak > 1 ? 's' : ''}
           </span>
           <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-2)', textTransform: 'uppercase' }}>

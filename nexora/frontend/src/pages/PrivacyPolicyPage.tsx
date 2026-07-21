@@ -32,7 +32,7 @@ export const PrivacyPolicyPage: React.FC = () => {
             <Shield size={20} />
           </div>
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, fontFamily: 'Cabinet Grotesk, sans-serif' }}>
+            <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0, fontFamily: 'Google Sans, Roboto, sans-serif' }}>
               Privacy Policy &amp; OAuth Disclosure
             </h1>
             <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '2px 0 0' }}>

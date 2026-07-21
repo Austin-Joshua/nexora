@@ -112,7 +112,7 @@ export const DashboardReportModal: React.FC = () => {
                 fontWeight: 800,
                 color: 'var(--text-1)',
                 margin: 0,
-                fontFamily: 'Cabinet Grotesk, General Sans, sans-serif',
+                fontFamily: 'Google Sans, Roboto, sans-serif',
                 lineHeight: 1.3,
               }}
             >

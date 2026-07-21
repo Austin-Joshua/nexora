@@ -49,7 +49,7 @@ export const WeeklyRecapCard: React.FC<RecapProps> = ({
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
         <div>
           <span style={{ fontSize: 11, color: 'var(--text-2)', textTransform: 'uppercase', fontWeight: 700 }}>PROCESSED</span>
-          <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-1)', margin: '4px 0 0', fontFamily: 'Cabinet Grotesk, sans-serif' }}>
+          <p style={{ fontSize: 24, fontWeight: 900, color: 'var(--text-1)', margin: '4px 0 0', fontFamily: 'Google Sans, Roboto, sans-serif' }}>
             {totalVolume} <span style={{ fontSize: 12, fontWeight: 500 }}>emails</span>
           </p>
         </div>

@@ -35,7 +35,7 @@ export const StatCard: React.FC<StatCardProps> = ({ label, value, sub, accentCol
           fontWeight: 800,
           color: 'var(--text-1)',
           lineHeight: 1,
-          fontFamily: 'Cabinet Grotesk, General Sans, sans-serif',
+          fontFamily: 'Google Sans, Roboto, sans-serif',
         }}
       >
         {value}
