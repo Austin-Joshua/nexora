@@ -1,19 +1,19 @@
-// New design-system category color map — used by CategoryTag and throughout the app
+// Category color + label system — used by CategoryTag and throughout the app
 
 export const CAT_COLORS: Record<string, { label: string; color: string }> = {
-  ASSIGNMENT:    { label: 'ASGN',  color: '#818cf8' },
-  HACKATHON:     { label: 'HACK',  color: '#f97316' },
-  PLACEMENT:     { label: 'PLACE', color: '#22c55e' },
-  MEETING:       { label: 'MTG',   color: '#c084fc' },
-  ATTENDANCE:    { label: 'ATTN',  color: '#ef4444' },
-  ANNOUNCEMENT:  { label: 'ANN',   color: '#fbbf24' },
-  PROMOTIONAL:   { label: 'PROMO', color: '#475569' },
-  INTERNSHIP:    { label: 'INTN',  color: '#2dd4bf' },
-  RESEARCH:      { label: 'RSRCH', color: '#22d3ee' },
-  FINANCE:       { label: 'FIN',   color: '#4ade80' },
-  PERSONAL:      { label: 'PRSN',  color: '#f472b6' },
-  SPAM:          { label: 'SPAM',  color: '#ef4444' },
-  UNCATEGORIZED: { label: 'MISC',  color: '#3d5570' },
+  ASSIGNMENT:    { label: 'Assignment',    color: '#6366f1' },
+  HACKATHON:     { label: 'Hackathon',     color: '#f97316' },
+  PLACEMENT:     { label: 'Placement',     color: '#10b981' },
+  MEETING:       { label: 'Meeting',       color: '#a855f7' },
+  ATTENDANCE:    { label: 'Attendance',     color: '#ef4444' },
+  ANNOUNCEMENT:  { label: 'Announcement',  color: '#eab308' },
+  PROMOTIONAL:   { label: 'Promo',         color: '#64748b' },
+  INTERNSHIP:    { label: 'Internship',    color: '#14b8a6' },
+  RESEARCH:      { label: 'Research',      color: '#06b6d4' },
+  FINANCE:       { label: 'Finance',       color: '#22c55e' },
+  PERSONAL:      { label: 'Personal',      color: '#ec4899' },
+  SPAM:          { label: 'Spam',          color: '#ef4444' },
+  UNCATEGORIZED: { label: 'Other',         color: '#64748b' },
 };
 
 // Legacy label map kept for backward-compat with existing pages
