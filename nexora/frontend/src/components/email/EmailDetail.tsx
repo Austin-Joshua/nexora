@@ -5,9 +5,11 @@ import axiosInstance from '../../api/axiosInstance';
 import { CategoryTag } from '../common/CategoryTag';
 import { PriorityBars } from '../common/PriorityBars';
 import { formatDateTime } from '../../utils/formatDate';
-import { Paperclip, Clock, CheckSquare, X, Calendar, Brain, ChevronDown, Zap, Check, Copy, RefreshCw } from 'lucide-react';
+import { cleanEmailBody } from '../../utils/cleanEmailBody';
+import {
+  CheckSquare, X, Calendar, Sparkles, ChevronDown, RefreshCw, MessageSquare
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { CAT_COLORS } from '../../utils/catColors';
 import { useEmailStore } from '../../store/emailStore';
 
 interface EmailDetailProps {
@@ -45,7 +47,6 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
     }
   }, [email?.id, email?.isRead, queryClient]);
 
-  // C.5 — Thread emails query
   const { data: threadEmails = [], isLoading: isThreadLoading } = useQuery({
     queryKey: ['email-thread', email?.gmailThreadId],
     queryFn: () => emailApi.getEmailThread(email!.gmailThreadId!),
@@ -54,9 +55,9 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
 
   if (isLoading) {
     return (
-      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }} className="animate-fade-in">
+      <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }} className="animate-fade-in">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: i === 0 ? 32 : i === 1 ? 48 : i === 2 ? 96 : 200 }} />
+          <div key={i} className="skeleton" style={{ height: i === 0 ? 36 : i === 1 ? 48 : 120 }} />
         ))}
       </div>
     );
@@ -64,7 +65,6 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
 
   if (!email) return null;
 
-  // Parse action items
   const actionItems = (() => {
     if (email.actions && Array.isArray(email.actions)) {
       return email.actions.map((a: any) => ({
@@ -92,10 +92,10 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
     return [];
   })();
 
-  const bodyText = email.bodyFull || email.bodySnippet || '';
-  const isLong = bodyText.length > 800;
-  const displayBody = isLong && !showFullBody ? bodyText.slice(0, 800) + '...' : bodyText;
-  const catColor = CAT_COLORS[email.category]?.color ?? '#3d5570';
+  const rawBodyText = email.bodyFull || email.bodySnippet || '';
+  const cleanedBody = cleanEmailBody(rawBodyText);
+  const isLong = cleanedBody.length > 900;
+  const displayBody = isLong && !showFullBody ? cleanedBody.slice(0, 900) + '...' : cleanedBody;
   const senderInitial = (email.senderName || email.senderEmail)[0]?.toUpperCase() ?? '?';
 
   const handleDraftReply = async () => {
@@ -104,7 +104,7 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
       const { data } = await axiosInstance.post(`/api/emails/${emailId}/draft-reply`, { style: draftStyle });
       setDraftText(data.draft || '');
     } catch {
-      setDraftText('Could not generate draft. Please try again.');
+      setDraftText('Could not generate draft reply. Please try again.');
     } finally {
       setIsDraftLoading(false);
     }
@@ -133,317 +133,170 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
   };
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--bg)' }} className="animate-fade-in">
-      {/* Header */}
-      <div
-        style={{
-          padding: '14px 16px',
-          borderBottom: '1px solid var(--border)',
-          flexShrink: 0,
-        }}
-      >
-        {/* Subject row */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 10 }}>
-          <h2 style={{ flex: 1, fontSize: 14, fontWeight: 700, color: 'var(--t1)', margin: 0, lineHeight: 1.4 }}>
+    <div
+      style={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        background: 'var(--bg)',
+        padding: '24px 32px',
+      }}
+      className="animate-fade-in"
+    >
+      {/* Header section */}
+      <div style={{ flexShrink: 0, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 12 }}>
+          <h1 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-1)', margin: 0, lineHeight: 1.3, flex: 1, fontFamily: 'Google Sans, Roboto, sans-serif' }}>
             {email.subject || '(no subject)'}
-          </h2>
-          <CategoryTag category={email.category} />
-          <PriorityBars priority={email.priority as 'HIGH' | 'MEDIUM' | 'LOW'} />
+          </h1>
           {onClose && (
             <button
               onClick={onClose}
               style={{
-                width: 26,
-                height: 26,
-                borderRadius: 5,
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
                 background: 'transparent',
                 border: 'none',
-                color: 'var(--t3)',
+                color: 'var(--text-2)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0,
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
             >
-              <X size={14} />
+              <X size={18} />
             </button>
           )}
         </div>
 
-        {/* Sender row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <CategoryTag category={email.category} />
+          <PriorityBars priority={email.priority as any} />
+          {email.deadlineDetected && (
+            <span style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Calendar size={13} /> {formatDateTime(email.deadlineDetected)}
+            </span>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
           <div
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 7,
-              background: catColor + '22',
-              border: `1px solid ${catColor}30`,
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: 'var(--accent)',
+              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 12,
-              fontWeight: 800,
-              color: catColor,
+              fontSize: 16,
+              fontWeight: 700,
               flexShrink: 0,
             }}
           >
             {senderInitial}
           </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--t1)', margin: '0 0 2px' }}>
-              {email.senderName || 'Unknown'}
-            </p>
-            <p style={{ fontSize: 11, color: 'var(--t3)', margin: 0 }}>
-              {email.senderEmail}
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span
-              style={{
-                fontSize: 9,
-                color: 'var(--t3)',
-                fontFamily: 'JetBrains Mono, monospace',
-              }}
-            >
-              {formatDateTime(email.receivedAt)} · read-only view
-            </span>
-            {email.hasAttachments && <Paperclip size={11} style={{ color: 'var(--t3)' }} />}
-            {email.deadlineDetected && (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '2px 7px',
-                  background: 'rgba(240,80,80,0.10)',
-                  border: '1px solid rgba(240,80,80,0.22)',
-                  borderRadius: 9999,
-                  fontSize: 9,
-                  color: '#f05050',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
-                <Calendar size={8} /> {formatDateTime(email.deadlineDetected)}
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-1)' }}>
+                {email.senderName || 'Unknown Sender'}
               </span>
-            )}
+              <span style={{ fontSize: 12, color: 'var(--text-2)' }}>
+                &lt;{email.senderEmail}&gt;
+              </span>
+            </div>
+            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>
+              to me
+            </span>
+          </div>
+
+          <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
+            {formatDateTime(email.receivedAt)}
           </div>
         </div>
       </div>
 
-      {/* Body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* AI Summary */}
+      {/* Main Content Area */}
+      <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* Email Body */}
+        <div
+          style={{
+            fontSize: 14,
+            color: 'var(--text-1)',
+            lineHeight: 1.6,
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'Roboto, sans-serif',
+          }}
+        >
+          {displayBody || '(No content)'}
+          {isLong && (
+            <button
+              onClick={() => setShowFullBody(f => !f)}
+              style={{
+                marginTop: 12,
+                display: 'block',
+                fontSize: 13,
+                color: 'var(--accent)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontWeight: 600,
+              }}
+            >
+              {showFullBody ? 'Show less' : 'Read full email'}
+            </button>
+          )}
+        </div>
+
+        {/* AI Summary Card */}
         {email.aiSummary && (
-          <div
-            style={{
-              background: 'var(--s2)',
-              borderLeft: '3px solid #f0c030',
-              borderRadius: 7,
-              padding: '10px 14px',
-            }}
-            className="animate-fade-in"
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-              <Brain size={12} style={{ color: '#f0c030' }} />
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  letterSpacing: '0.13em',
-                  textTransform: 'uppercase',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  color: '#f0c030',
-                }}
-              >
-                AI SUMMARY
-              </span>
+          <div className="surface-elevated" style={{ padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: 'var(--accent)' }}>
+              <Sparkles size={16} />
+              <span style={{ fontSize: 13, fontWeight: 700 }}>✨ AI Intelligence Summary</span>
             </div>
-            <p style={{ fontSize: 12, color: '#9bb0c4', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 13, color: 'var(--text-1)', margin: 0, lineHeight: 1.6 }}>
               {email.aiSummary}
             </p>
           </div>
         )}
 
-        {/* C.5 — Collapsible Thread View */}
-        {email.gmailThreadId && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }} className="animate-fade-in">
-            <button
-              onClick={() => setShowThread(t => !t)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 4,
-                fontSize: 10,
-                fontWeight: 700,
-                color: 'var(--t3)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                alignSelf: 'flex-start',
-                padding: '4px 0',
-              }}
-            >
-              <ChevronDown
-                size={11}
-                style={{
-                  transition: 'transform 0.25s ease',
-                  transform: showThread ? 'rotate(180deg)' : 'none',
-                }}
-              />
-              THREAD ({showThread && isThreadLoading ? '...' : threadEmails.length || 'view messages'})
-            </button>
-
-            {showThread && (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 6,
-                  paddingLeft: 8,
-                  borderLeft: '1px solid var(--border)',
-                }}
-                className="animate-fade-in"
-              >
-                {isThreadLoading ? (
-                  <div className="skeleton" style={{ height: 48, borderRadius: 6 }} />
-                ) : (
-                  threadEmails.map((sibling: any) => {
-                    const isCurrent = sibling.id === emailId;
-                    const siblingInitial = (sibling.senderName || sibling.senderEmail)[0]?.toUpperCase() ?? '?';
-                    return (
-                      <div
-                        key={sibling.id}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 10,
-                          padding: '6px 10px',
-                          background: isCurrent ? 'var(--s1)' : 'transparent',
-                          borderLeft: `3px solid ${isCurrent ? '#f0c030' : 'transparent'}`,
-                          borderRadius: 4,
-                          cursor: 'pointer',
-                          transition: 'background 0.15s ease',
-                        }}
-                        onClick={() => {
-                          if (!isCurrent) {
-                            setSelectedEmail(sibling);
-                          }
-                        }}
-                        onMouseEnter={e => {
-                          if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'var(--s1)';
-                        }}
-                        onMouseLeave={e => {
-                          if (!isCurrent) (e.currentTarget as HTMLElement).style.background = 'transparent';
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 5,
-                            background: 'rgba(79,158,255,0.08)',
-                            border: '1px solid rgba(79,158,255,0.18)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 10,
-                            fontWeight: 800,
-                            color: '#4f9eff',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {siblingInitial}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, marginBottom: 2 }}>
-                            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {sibling.senderName || sibling.senderEmail}
-                            </span>
-                            <span style={{ fontSize: 8, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>
-                              {formatDateTime(sibling.receivedAt)}
-                            </span>
-                          </div>
-                          <p style={{ fontSize: 10, color: 'var(--t2)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {sibling.bodySnippet || '(no content snippet)'}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Action Items */}
+        {/* Action Items Card */}
         {actionItems.length > 0 && (
-          <div className="animate-fade-in delay-100">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-              <CheckSquare size={12} style={{ color: 'var(--t3)' }} />
-              <span className="section-label">ACTION ITEMS ({actionItems.length})</span>
+          <div className="surface-elevated" style={{ padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: 'var(--accent)' }}>
+              <CheckSquare size={16} />
+              <span style={{ fontSize: 13, fontWeight: 700 }}>Action Items Required ({actionItems.length})</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {actionItems.map((a: any, i: number) => (
                 <div
                   key={i}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 10,
+                    gap: 12,
                     padding: '8px 12px',
-                    background: 'rgba(79,158,255,0.06)',
-                    border: '1px solid rgba(79,158,255,0.18)',
+                    background: 'var(--bg)',
+                    border: '1px solid var(--border)',
                     borderRadius: 6,
                   }}
                 >
-                  {/* Completion checkbox */}
                   {a.id && (
-                    <button
-                      onClick={() => handleCompleteAction(a.id)}
-                      style={{
-                        width: 16,
-                        height: 16,
-                        borderRadius: 3,
-                        border: '1px solid var(--border)',
-                        background: completingActions.has(a.id) ? 'rgba(64,192,112,0.20)' : 'transparent',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                        transition: 'all 0.15s ease',
-                      }}
-                    >
-                      {completingActions.has(a.id) && <Check size={9} style={{ color: '#40c070' }} />}
-                    </button>
+                    <input
+                      type="checkbox"
+                      checked={completingActions.has(a.id)}
+                      onChange={() => handleCompleteAction(a.id)}
+                      style={{ cursor: 'pointer', accentColor: 'var(--accent)' }}
+                    />
                   )}
-                  <div style={{ flex: 1 }}>
-                    <span style={{ fontSize: 12, color: '#4f9eff' }}>{a.description}</span>
-                    {a.deadline && (
-                      <p style={{ fontSize: 9, color: '#f0c030', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'JetBrains Mono, monospace' }}>
-                        <Clock size={8} /> {formatDateTime(a.deadline)}
-                      </p>
-                    )}
-                  </div>
+                  <span style={{ flex: 1, fontSize: 13, color: 'var(--text-1)' }}>{a.description}</span>
                   {a.action_type && (
-                    <span
-                      style={{
-                        padding: '1px 6px',
-                        background: 'rgba(79,158,255,0.10)',
-                        border: '1px solid rgba(79,158,255,0.22)',
-                        borderRadius: 3,
-                        fontSize: 9,
-                        fontWeight: 700,
-                        color: '#4f9eff',
-                        fontFamily: 'JetBrains Mono, monospace',
-                        flexShrink: 0,
-                      }}
-                    >
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--accent)', background: 'var(--accent-soft)', padding: '2px 6px', borderRadius: 4 }}>
                       {a.action_type}
                     </span>
                   )}
@@ -451,138 +304,145 @@ export const EmailDetail: React.FC<EmailDetailProps> = ({ emailId, onClose }) =>
               ))}
             </div>
 
-            {/* Ask Brain + Draft Reply buttons */}
-            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
               <button
-                className="btn-outline-blue"
+                className="btn-outline"
                 onClick={() => navigate(`/brain?context=email:${emailId}`)}
               >
-                <Brain size={12} /> Ask Brain
+                <Sparkles size={14} /> Ask Nexora Brain
               </button>
               <button
-                className="btn-outline-blue"
+                className="btn-outline"
                 onClick={() => {
                   setShowDraftReply(d => !d);
                   if (!showDraftReply && !draftText) handleDraftReply();
                 }}
               >
-                <Zap size={12} /> Draft Reply
+                <MessageSquare size={14} /> Draft Reply
               </button>
             </div>
+          </div>
+        )}
 
-            {/* Draft Reply panel */}
-            {showDraftReply && (
-              <div
+        {/* Draft Reply Card */}
+        {showDraftReply && (
+          <div className="surface-elevated" style={{ padding: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: 'var(--accent)' }}>
+              <MessageSquare size={16} />
+              <span style={{ fontSize: 13, fontWeight: 700 }}>↩ Draft AI Reply</span>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {(['PROFESSIONAL', 'FORMAL', 'FRIENDLY', 'CONCISE'] as const).map(s => (
+                <button
+                  key={s}
+                  onClick={() => setDraftStyle(s)}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: 16,
+                    fontSize: 12,
+                    border: '1px solid var(--border)',
+                    background: draftStyle === s ? 'var(--accent-soft)' : 'var(--bg)',
+                    color: draftStyle === s ? 'var(--accent)' : 'var(--text-1)',
+                    fontWeight: draftStyle === s ? 700 : 400,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {isDraftLoading ? (
+              <div style={{ padding: 16, color: 'var(--text-2)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <RefreshCw size={14} className="animate-spin" /> Generating reply with Gemini AI...
+              </div>
+            ) : (
+              <textarea
+                value={draftText}
+                onChange={e => setDraftText(e.target.value)}
                 style={{
-                  marginTop: 10,
-                  background: 'var(--s1)',
+                  width: '100%',
+                  minHeight: 110,
+                  background: 'var(--bg)',
                   border: '1px solid var(--border)',
-                  borderRadius: 8,
+                  borderRadius: 6,
                   padding: 12,
+                  fontSize: 13,
+                  color: 'var(--text-1)',
+                  outline: 'none',
+                  fontFamily: 'Roboto, sans-serif',
                 }}
-                className="animate-fade-in"
-              >
-                {/* Style tabs */}
-                <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
-                  {(['PROFESSIONAL', 'FORMAL', 'FRIENDLY', 'CONCISE'] as const).map(s => (
-                    <button
-                      key={s}
-                      className={`tab-item${draftStyle === s ? ' active' : ''}`}
-                      onClick={() => setDraftStyle(s)}
-                    >
-                      {s.charAt(0) + s.slice(1).toLowerCase()}
-                    </button>
-                  ))}
-                </div>
-                {isDraftLoading ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 16, color: 'var(--t3)', fontSize: 12 }}>
-                    <RefreshCw size={12} className="animate-spin" /> Generating draft…
-                  </div>
+              />
+            )}
+
+            <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <button className="btn-accent" onClick={handleCopy}>
+                {copied ? 'Copied!' : 'Copy to Clipboard'}
+              </button>
+              <button className="btn-outline" onClick={handleDraftReply} disabled={isDraftLoading}>
+                Regenerate
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Thread Card */}
+        {email.gmailThreadId && (
+          <div className="surface-elevated" style={{ padding: 16 }}>
+            <button
+              onClick={() => setShowThread(t => !t)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 13,
+                fontWeight: 700,
+                color: 'var(--accent)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              <ChevronDown
+                size={16}
+                style={{ transform: showThread ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+              />
+              🧵 Email Thread ({threadEmails.length || 'view messages'})
+            </button>
+
+            {showThread && (
+              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {isThreadLoading ? (
+                  <div className="skeleton" style={{ height: 48 }} />
                 ) : (
-                  <textarea
-                    value={draftText}
-                    onChange={e => setDraftText(e.target.value)}
-                    style={{
-                      width: '100%',
-                      minHeight: 100,
-                      background: 'var(--bg)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 6,
-                      padding: '8px 10px',
-                      fontSize: 12,
-                      color: 'var(--t1)',
-                      resize: 'vertical',
-                      fontFamily: 'Inter, sans-serif',
-                      outline: 'none',
-                      lineHeight: 1.6,
-                    }}
-                  />
+                  threadEmails.map((sibling: any) => (
+                    <div
+                      key={sibling.id}
+                      onClick={() => setSelectedEmail(sibling)}
+                      style={{
+                        padding: '10px 12px',
+                        background: sibling.id === emailId ? 'var(--surface-2)' : 'var(--bg)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 700, color: 'var(--text-1)' }}>
+                        <span>{sibling.senderName || sibling.senderEmail}</span>
+                        <span style={{ color: 'var(--text-3)' }}>{formatDateTime(sibling.receivedAt)}</span>
+                      </div>
+                      <p style={{ fontSize: 12, color: 'var(--text-2)', margin: '4px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {sibling.bodySnippet}
+                      </p>
+                    </div>
+                  ))
                 )}
-                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                  <button className="btn-outline-blue" onClick={handleCopy}>
-                    <Copy size={11} /> {copied ? 'Copied!' : 'Copy'}
-                  </button>
-                  <button
-                    className="btn-outline-blue"
-                    onClick={handleDraftReply}
-                    disabled={isDraftLoading}
-                  >
-                    <RefreshCw size={11} className={isDraftLoading ? 'animate-spin' : ''} /> Regenerate
-                  </button>
-                  <button
-                    onClick={() => setShowDraftReply(false)}
-                    style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: 11 }}
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
               </div>
             )}
           </div>
         )}
-
-        {/* Email body */}
-        <div className="animate-fade-in delay-200">
-          <span className="section-label" style={{ display: 'block', marginBottom: 6 }}>EMAIL CONTENT</span>
-          <div
-            style={{
-              background: 'var(--s1)',
-              border: '1px solid var(--border)',
-              borderRadius: 7,
-              padding: '11px 12px',
-            }}
-          >
-            <p style={{ fontSize: 12, color: 'var(--t2)', margin: 0, lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-              {displayBody || '(no content)'}
-            </p>
-            {isLong && (
-              <button
-                onClick={() => setShowFullBody(f => !f)}
-                style={{
-                  marginTop: 10,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  fontSize: 11,
-                  color: '#4f9eff',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                }}
-              >
-                <ChevronDown
-                  size={12}
-                  style={{
-                    transition: 'transform 0.25s ease',
-                    transform: showFullBody ? 'rotate(180deg)' : 'none',
-                  }}
-                />
-                {showFullBody ? 'Show less' : 'Read more'}
-              </button>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

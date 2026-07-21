@@ -15,33 +15,24 @@ export const EmailList: React.FC<EmailListProps> = ({ emails, isLoading, onEmail
 
   if (isLoading) {
     return (
-      <div>
-        {Array.from({ length: 8 }).map((_, i) => (
+      <div style={{ background: 'var(--bg)' }}>
+        {Array.from({ length: 10 }).map((_, i) => (
           <div
             key={i}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
-              height: 48,
-              padding: '0 14px',
+              gap: 16,
+              height: 44,
+              padding: '0 16px',
               borderBottom: '1px solid var(--border)',
-              animationDelay: `${i * 50}ms`,
             }}
-            className="animate-fade-in"
           >
-            {/* Avatar skeleton */}
-            <div
-              className="skeleton"
-              style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0 }}
-            />
-            {/* Text skeleton */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <div className="skeleton" style={{ height: 10, width: '45%', borderRadius: 4 }} />
-              <div className="skeleton" style={{ height: 9, width: '70%', borderRadius: 4 }} />
-            </div>
-            {/* Badge skeleton */}
-            <div className="skeleton" style={{ height: 16, width: 56, borderRadius: 9999 }} />
+            <div className="skeleton" style={{ width: 16, height: 16, borderRadius: 2 }} />
+            <div className="skeleton" style={{ width: 18, height: 18, borderRadius: 2 }} />
+            <div className="skeleton" style={{ width: 140, height: 14, borderRadius: 4 }} />
+            <div className="skeleton" style={{ flex: 1, height: 14, borderRadius: 4 }} />
+            <div className="skeleton" style={{ width: 64, height: 14, borderRadius: 4 }} />
           </div>
         ))}
       </div>
@@ -57,49 +48,45 @@ export const EmailList: React.FC<EmailListProps> = ({ emails, isLoading, onEmail
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '48px 24px',
+          padding: '64px 24px',
           textAlign: 'center',
+          background: 'var(--bg)',
         }}
       >
         <div
           style={{
             width: 56,
             height: 56,
-            borderRadius: 12,
+            borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: 16,
-            background: 'var(--s1)',
+            background: 'var(--surface)',
             border: '1px solid var(--border)',
           }}
         >
-          <Inbox size={22} style={{ color: 'var(--t3)' }} />
+          <Inbox size={24} style={{ color: 'var(--text-3)' }} />
         </div>
-        <p style={{ color: 'var(--t2)', fontWeight: 700, fontSize: 13, margin: '0 0 4px' }}>
-          No emails found
+        <p style={{ color: 'var(--text-1)', fontWeight: 700, fontSize: 14, margin: '0 0 4px', fontFamily: 'Google Sans, Roboto, sans-serif' }}>
+          Your inbox is clear
         </p>
-        <p style={{ color: 'var(--t3)', fontSize: 11, margin: 0, lineHeight: 1.5 }}>
-          Try a different category filter or sync your inbox.
+        <p style={{ color: 'var(--text-2)', fontSize: 13, margin: 0 }}>
+          No emails match your selected category or search filters.
         </p>
       </div>
     );
   }
 
   return (
-    <div>
-      {emails.map((email, i) => (
-        <div
+    <div style={{ background: 'var(--bg)' }}>
+      {emails.map((email) => (
+        <EmailCard
           key={email.id}
-          className="animate-fade-in"
-          style={{ animationDelay: `${Math.min(i * 25, 200)}ms` }}
-        >
-          <EmailCard
-            email={email}
-            isSelected={selectedEmail?.id === email.id}
-            onClick={() => onEmailSelect?.(email)}
-          />
-        </div>
+          email={email}
+          isSelected={selectedEmail?.id === email.id}
+          onClick={() => onEmailSelect?.(email)}
+        />
       ))}
     </div>
   );

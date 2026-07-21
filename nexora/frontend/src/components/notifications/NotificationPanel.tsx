@@ -26,67 +26,40 @@ export const NotificationPanel: React.FC = () => {
 
   return (
     <>
-      {/* Backdrop */}
       <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={togglePanel} />
 
-      {/* Panel */}
       <div
-        className="animate-scale-in"
+        className="animate-fade-in"
         style={{
           position: 'absolute',
           right: 0,
-          top: 36,
+          top: 44,
           width: 320,
           maxHeight: 400,
           zIndex: 50,
           display: 'flex',
           flexDirection: 'column',
-          background: 'var(--s2)',
-          border: '1px solid var(--border-b)',
-          borderRadius: 8,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+          background: 'var(--bg)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
         }}
       >
-        {/* Header */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '10px 12px',
+            padding: '12px 16px',
             borderBottom: '1px solid var(--border)',
             flexShrink: 0,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div
-              style={{
-                width: 24,
-                height: 24,
-                borderRadius: 5,
-                background: 'rgba(240,192,48,0.12)',
-                border: '1px solid rgba(240,192,48,0.20)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Bell size={12} style={{ color: '#f0c030' }} />
-            </div>
-            <span className="section-label">ALERTS</span>
+            <Bell size={16} style={{ color: 'var(--accent)' }} />
+            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)' }}>Notifications</span>
             {unreadCount > 0 && (
-              <span
-                style={{
-                  padding: '1px 5px',
-                  background: 'rgba(240,192,48,0.12)',
-                  border: '1px solid rgba(240,192,48,0.25)',
-                  borderRadius: 9999,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: '#f0c030',
-                  fontFamily: 'JetBrains Mono, monospace',
-                }}
-              >
+              <span style={{ padding: '2px 6px', background: 'var(--accent-soft)', borderRadius: 12, fontSize: 10, fontWeight: 700, color: 'var(--accent)' }}>
                 {unreadCount}
               </span>
             )}
@@ -96,53 +69,21 @@ export const NotificationPanel: React.FC = () => {
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--t3)',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 3,
-                  padding: '2px 4px',
-                }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#40c070'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--t3)'}
-                title="Mark all read"
+                style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
               >
-                <CheckCheck size={11} /> Read all
+                <CheckCheck size={14} />
               </button>
             )}
-            <button
-              onClick={togglePanel}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--t3)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 20,
-                height: 20,
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--t1)'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'var(--t3)'}
-            >
-              <X size={12} />
+            <button onClick={togglePanel} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer' }}>
+              <X size={16} />
             </button>
           </div>
         </div>
 
-        {/* List */}
         <div style={{ flex: 1, overflowY: 'auto', padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
           {notifications.length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center' }}>
-              <div style={{ fontSize: 20, marginBottom: 6 }}>🔔</div>
-              <p style={{ color: 'var(--t2)', fontSize: 11, fontWeight: 600, margin: '0 0 2px' }}>All caught up!</p>
-              <p style={{ color: 'var(--t3)', fontSize: 9, margin: 0 }}>No alerts right now</p>
+            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-2)', fontSize: 13 }}>
+              No notifications
             </div>
           ) : (
             notifications.slice(0, 5).map((n) => (
@@ -151,26 +92,14 @@ export const NotificationPanel: React.FC = () => {
           )}
         </div>
 
-        {/* Footer */}
         {notifications.length > 0 && (
-          <div
-            style={{
-              padding: '8px 12px',
-              borderTop: '1px solid var(--border)',
-              flexShrink: 0,
-            }}
-          >
+          <div style={{ padding: '8px 12px', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
             <button
               onClick={() => { togglePanel(); navigate('/notifications'); }}
-              className="btn-outline-blue"
-              style={{
-                width: '100%',
-                justifyContent: 'center',
-                fontSize: 10,
-                padding: '4px 0',
-              }}
+              className="btn-outline"
+              style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}
             >
-              View all notifications <ExternalLink size={10} />
+              View all notifications <ExternalLink size={12} />
             </button>
           </div>
         )}

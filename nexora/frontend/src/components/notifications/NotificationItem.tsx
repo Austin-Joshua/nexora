@@ -9,27 +9,27 @@ import { Bell, Clock, Mail, CheckCircle, Check, ArrowRight } from 'lucide-react'
 const TYPE_CONFIG: Record<string, { icon: React.ReactNode; color: string; bg: string; border: string }> = {
   DEADLINE: {
     icon: <Clock size={12} />,
-    color: '#f05050',
-    bg: 'rgba(240,80,80,0.12)',
-    border: 'rgba(240,80,80,0.25)',
+    color: 'var(--danger)',
+    bg: 'rgba(217,48,37,0.12)',
+    border: 'rgba(217,48,37,0.25)',
   },
   ACTION_REQUIRED: {
     icon: <CheckCircle size={12} />,
-    color: '#f0c030',
-    bg: 'rgba(240,192,48,0.12)',
-    border: 'rgba(240,192,48,0.25)',
+    color: 'var(--star)',
+    bg: 'rgba(242,180,0,0.12)',
+    border: 'rgba(242,180,0,0.25)',
   },
   IMPORTANT_EMAIL: {
     icon: <Mail size={12} />,
-    color: '#4f9eff',
-    bg: 'rgba(79,158,255,0.12)',
-    border: 'rgba(79,158,255,0.25)',
+    color: 'var(--accent)',
+    bg: 'var(--accent-soft)',
+    border: 'rgba(26,115,232,0.25)',
   },
   DAILY_DIGEST: {
     icon: <Bell size={12} />,
-    color: '#7890a8',
-    bg: 'rgba(120,144,168,0.12)',
-    border: 'rgba(120,144,168,0.25)',
+    color: 'var(--text-2)',
+    bg: 'var(--surface)',
+    border: 'var(--border)',
   },
 };
 
@@ -72,7 +72,7 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
         alignItems: 'center',
         gap: 12,
         padding: '10px 14px',
-        background: notification.isRead ? 'transparent' : 'var(--s1)',
+        background: notification.isRead ? 'transparent' : 'var(--surface)',
         border: '1px solid var(--border)',
         borderRadius: 8,
         cursor: notification.relatedEmailId ? 'pointer' : 'default',
@@ -80,15 +80,12 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
         position: 'relative',
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.background = 'var(--s2)';
-        (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-b)';
+        (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)';
       }}
       onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.background = notification.isRead ? 'transparent' : 'var(--s1)';
-        (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
+        (e.currentTarget as HTMLElement).style.background = notification.isRead ? 'transparent' : 'var(--surface)';
       }}
     >
-      {/* Unread status bar */}
       {!notification.isRead && (
         <div
           style={{
@@ -97,13 +94,12 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
             top: 0,
             bottom: 0,
             width: 3,
-            background: '#f0c030',
+            background: 'var(--accent)',
             borderRadius: '3px 0 0 3px',
           }}
         />
       )}
 
-      {/* Type Icon */}
       <div
         style={{
           width: 28,
@@ -121,14 +117,13 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
         {cfg.icon}
       </div>
 
-      {/* Text Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 2 }}>
           <p
             style={{
-              fontSize: 12,
-              fontWeight: notification.isRead ? 600 : 700,
-              color: notification.isRead ? 'var(--t2)' : 'var(--t1)',
+              fontSize: 13,
+              fontWeight: notification.isRead ? 400 : 700,
+              color: notification.isRead ? 'var(--text-2)' : 'var(--text-1)',
               margin: 0,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -137,14 +132,14 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
           >
             {notification.title}
           </p>
-          <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0 }}>
+          <span style={{ fontSize: 11, color: 'var(--text-3)', flexShrink: 0 }}>
             {formatRelative(notification.createdAt)}
           </span>
         </div>
         <p
           style={{
-            fontSize: 11,
-            color: notification.isRead ? 'var(--t3)' : 'var(--t2)',
+            fontSize: 12,
+            color: 'var(--text-2)',
             margin: 0,
             lineHeight: 1.4,
             overflow: 'hidden',
@@ -156,7 +151,6 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
         </p>
       </div>
 
-      {/* Actions */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
         {!notification.isRead && (
           <button
@@ -167,30 +161,19 @@ export const NotificationItem: React.FC<Props> = ({ notification }) => {
               borderRadius: 4,
               border: '1px solid var(--border)',
               background: 'transparent',
-              color: 'var(--t3)',
+              color: 'var(--text-2)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLElement).style.borderColor = '#40c070';
-              (e.currentTarget as HTMLElement).style.color = '#40c070';
-              (e.currentTarget as HTMLElement).style.background = 'rgba(64,192,112,0.10)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-              (e.currentTarget as HTMLElement).style.color = 'var(--t3)';
-              (e.currentTarget as HTMLElement).style.background = 'transparent';
             }}
             title="Mark read"
           >
-            <Check size={11} />
+            <Check size={12} />
           </button>
         )}
         {notification.relatedEmailId && (
-          <ArrowRight size={11} style={{ color: 'var(--t3)' }} />
+          <ArrowRight size={12} style={{ color: 'var(--text-3)' }} />
         )}
       </div>
     </div>

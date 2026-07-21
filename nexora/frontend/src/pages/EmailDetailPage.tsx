@@ -9,34 +9,13 @@ export const EmailDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const emailId = id ? parseInt(id, 10) : null;
 
-  const handleClose = () => navigate(-1);
-
   if (!emailId || isNaN(emailId)) {
     return (
-      <AppShell title="Email" subtitle="Email not found">
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: 16, padding: 32, textAlign: 'center' }}>
-          <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 12,
-              background: 'var(--s1)',
-              border: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 24,
-            }}
-          >
-            📭
-          </div>
-          <p style={{ color: 'var(--t1)', fontWeight: 700 }}>Invalid email ID</p>
-          <button
-            onClick={() => navigate('/inbox')}
-            className="btn-ghost"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
-          >
-            <ArrowLeft size={12} /> Back to Inbox
+      <AppShell title="Email Detail">
+        <div style={{ padding: 24, textAlign: 'center' }}>
+          <p style={{ color: 'var(--danger)', fontSize: 14 }}>Invalid email ID.</p>
+          <button className="btn-outline" onClick={() => navigate('/inbox')}>
+            <ArrowLeft size={14} /> Back to Inbox
           </button>
         </div>
       </AppShell>
@@ -44,38 +23,20 @@ export const EmailDetailPage: React.FC = () => {
   }
 
   return (
-    <AppShell title="Email Detail" subtitle="Full email view">
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-        {/* Back breadcrumb */}
-        <div
-          style={{
-            flexShrink: 0,
-            padding: '10px 14px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
+    <AppShell noScroll>
+      <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+        <div style={{ padding: '8px 16px', borderBottom: '1px solid var(--border)' }}>
           <button
-            onClick={handleClose}
-            className="btn-ghost"
-            style={{
-              fontSize: 10,
-              padding: '4px 8px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
+            className="btn-outline"
+            onClick={() => navigate('/inbox')}
+            style={{ fontSize: 12 }}
           >
-            <ArrowLeft size={10} /> Back
+            <ArrowLeft size={14} /> Back to Inbox
           </button>
-          <span style={{ color: 'var(--border)', fontSize: 11 }}>/</span>
-          <span style={{ fontSize: 10, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>EMAIL #{emailId}</span>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          <EmailDetail emailId={emailId} onClose={handleClose} />
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          <EmailDetail emailId={emailId} onClose={() => navigate('/inbox')} />
         </div>
       </div>
     </AppShell>

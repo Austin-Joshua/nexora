@@ -13,46 +13,46 @@ export const BrainMessageComponent: React.FC<Props> = ({ message, onEmailClick }
 
   return (
     <div style={{ display: 'flex', gap: 12, flexDirection: isUser ? 'row-reverse' : 'row' }}>
-      {/* Avatar */}
       <div
         style={{
           width: 32,
           height: 32,
-          borderRadius: 8,
+          borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
-          background: isUser ? '#1e2d3f' : 'rgba(79,158,255,0.12)',
-          border: `1px solid ${isUser ? 'var(--border)' : 'rgba(79,158,255,0.25)'}`,
-          color: isUser ? 'var(--t2)' : '#4f9eff',
+          background: isUser ? 'var(--surface-2)' : 'var(--accent-soft)',
+          border: '1px solid var(--border)',
+          color: isUser ? 'var(--text-1)' : 'var(--accent)',
         }}
       >
-        {isUser ? <UserIcon size={14} /> : <Brain size={14} />}
+        {isUser ? <UserIcon size={16} /> : <Brain size={16} />}
       </div>
 
-      {/* Content wrapper */}
       <div style={{ maxWidth: '80%', display: 'flex', flexDirection: 'column', gap: 6, alignItems: isUser ? 'flex-end' : 'flex-start' }}>
-        {/* Label */}
-        <span className="section-label" style={{ fontSize: 8 }}>
+        <span className="section-label" style={{ fontSize: 10 }}>
           {isUser ? 'You' : 'Brain'}
         </span>
 
-        {/* Bubble */}
         <div
-          className={isUser ? 'bubble-user' : 'bubble-ai'}
           style={{
             maxWidth: '100%',
-            alignSelf: 'unset',
+            padding: '12px 16px',
+            borderRadius: 12,
+            background: isUser ? 'var(--accent-soft)' : 'var(--surface)',
+            color: isUser ? 'var(--accent)' : 'var(--text-1)',
+            border: '1px solid var(--border)',
+            fontSize: 14,
+            lineHeight: 1.6,
           }}
         >
           {message.content}
         </div>
 
-        {/* Source Emails */}
         {!isUser && message.referencedEmails && message.referencedEmails.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%', marginTop: 4 }}>
-            <span className="section-label" style={{ fontSize: 8 }}>SOURCE EMAILS ({message.referencedEmails.length})</span>
+            <span className="section-label" style={{ fontSize: 10 }}>SOURCE EMAILS ({message.referencedEmails.length})</span>
             {message.referencedEmails.map((email) => (
               <button
                 key={email.id}
@@ -61,7 +61,7 @@ export const BrainMessageComponent: React.FC<Props> = ({ message, onEmailClick }
                   width: '100%',
                   textAlign: 'left',
                   padding: '8px 12px',
-                  background: 'var(--s1)',
+                  background: 'var(--bg)',
                   border: '1px solid var(--border)',
                   borderRadius: 6,
                   cursor: 'pointer',
@@ -70,30 +70,22 @@ export const BrainMessageComponent: React.FC<Props> = ({ message, onEmailClick }
                   gap: 10,
                   transition: 'all 0.15s ease',
                 }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'rgba(79,158,255,0.35)';
-                  (e.currentTarget as HTMLElement).style.background = 'var(--s2)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-                  (e.currentTarget as HTMLElement).style.background = 'var(--s1)';
-                }}
               >
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--t1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {email.subject || '(no subject)'}
                   </p>
-                  <p style={{ fontSize: 9, color: 'var(--t3)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-2)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {email.senderName || email.senderEmail}
                   </p>
                 </div>
-                <ExternalLink size={11} style={{ color: 'var(--t3)' }} />
+                <ExternalLink size={12} style={{ color: 'var(--text-3)' }} />
               </button>
             ))}
           </div>
         )}
 
-        <span style={{ fontSize: 9, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>
+        <span style={{ fontSize: 10, color: 'var(--text-3)' }}>
           {formatRelative(message.timestamp.toISOString())}
         </span>
       </div>

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../api/authApi';
-import { PageLoader } from '../components/common/LoadingSpinner';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 /**
  * Handles the OAuth callback redirect from the backend.
@@ -60,5 +60,5 @@ export const AuthCallbackPage: React.FC = () => {
     }
   }, [searchParams, navigate, setToken, setUser]);
 
-  return <PageLoader />;
+  return <LoadingSpinner fullScreen label="Signing you in..." />;
 };

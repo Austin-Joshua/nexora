@@ -10,45 +10,37 @@ interface StatCardProps {
 }
 
 /**
- * Dashboard stat card with a colored top border accent.
+ * Gmail/Material style flat StatCard
  */
 export const StatCard: React.FC<StatCardProps> = ({ label, value, sub, accentColor, icon: Icon }) => {
   return (
     <div
-      className="stat-card"
-      style={{ borderTop: `2px solid ${accentColor}` }}
+      className="surface-elevated"
+      style={{
+        padding: '16px 20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        borderLeft: `4px solid ${accentColor}`,
+      }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span className="section-label">{label}</span>
-        <div
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 6,
-            background: accentColor + '15',
-            border: `1px solid ${accentColor}25`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <Icon size={14} style={{ color: accentColor }} />
-        </div>
+        <Icon size={18} style={{ color: accentColor }} />
       </div>
       <div
         style={{
-          fontSize: 26,
-          fontWeight: 800,
-          color: 'var(--t1)',
-          fontVariantNumeric: 'tabular-nums',
+          fontSize: 28,
+          fontWeight: 700,
+          color: 'var(--text-1)',
           lineHeight: 1,
+          fontFamily: 'Google Sans, Roboto, sans-serif',
         }}
       >
         {value}
       </div>
       {sub && (
-        <div style={{ fontSize: 10, color: 'var(--t3)', fontFamily: 'JetBrains Mono, monospace' }}>
+        <div style={{ fontSize: 12, color: 'var(--text-2)' }}>
           {sub}
         </div>
       )}

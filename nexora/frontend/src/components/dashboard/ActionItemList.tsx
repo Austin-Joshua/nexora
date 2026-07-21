@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { CheckSquare, Clock, CheckCircle2, Check } from 'lucide-react';
-import { formatDateTime } from '../../utils/formatDate';
+import { CheckSquare, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../../api/axiosInstance';
@@ -30,14 +29,11 @@ export const ActionItemList: React.FC<ActionItemListProps> = ({ actions }) => {
     e.stopPropagation();
     if (completing.has(actionId)) return;
     setCompleting(prev => new Set(prev).add(actionId));
-    // Optimistically hide it
     setLocalCompleted(prev => new Set(prev).add(actionId));
     try {
       await axiosInstance.patch(`/api/email-actions/${actionId}/complete`);
-      // Invalidate dashboard query to refresh counts
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
     } catch {
-      // Rollback on error
       setLocalCompleted(prev => {
         const s = new Set(prev);
         s.delete(actionId);
@@ -55,140 +51,68 @@ export const ActionItemList: React.FC<ActionItemListProps> = ({ actions }) => {
   const visibleActions = actions.filter(a => !localCompleted.has(a.id));
 
   return (
-    <div className="surface" style={{ overflow: 'hidden' }}>
+    <div className="surface-elevated" style={{ overflow: 'hidden' }}>
       {/* Header */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          padding: '10px 14px',
+          padding: '12px 16px',
           borderBottom: '1px solid var(--border)',
         }}
       >
-        <div
-          style={{
-            width: 26,
-            height: 26,
-            borderRadius: 6,
-            background: 'rgba(240,192,48,0.12)',
-            border: '1px solid rgba(240,192,48,0.20)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <CheckSquare size={12} style={{ color: '#f0c030' }} />
-        </div>
+        <CheckSquare size={16} style={{ color: 'var(--accent)' }} />
         <span className="section-label" style={{ flex: 1 }}>PENDING ACTIONS</span>
         {visibleActions.length > 0 && (
-          <span
-            style={{
-              padding: '1px 7px',
-              background: 'rgba(240,192,48,0.12)',
-              border: '1px solid rgba(240,192,48,0.25)',
-              borderRadius: 9999,
-              fontSize: 10,
-              fontWeight: 700,
-              color: '#f0c030',
-              fontFamily: 'JetBrains Mono, monospace',
-            }}
-          >
+          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--accent)' }}>
             {visibleActions.length}
           </span>
         )}
       </div>
 
       {/* List */}
-      <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+      <div style={{ maxHeight: 280, overflowY: 'auto' }}>
         {visibleActions.length === 0 ? (
           <div style={{ padding: 32, textAlign: 'center' }}>
-            <CheckCircle2 size={24} style={{ color: '#40c070', margin: '0 auto 8px', display: 'block', opacity: 0.6 }} />
-            <p style={{ color: 'var(--t2)', fontSize: 12, fontWeight: 600, margin: '0 0 4px' }}>All done!</p>
-            <p style={{ color: 'var(--t3)', fontSize: 10, margin: 0 }}>No pending actions right now</p>
+            <CheckCircle2 size={24} style={{ color: 'var(--success)', margin: '0 auto 8px', display: 'block' }} />
+            <p style={{ color: 'var(--text-1)', fontSize: 13, fontWeight: 700, margin: '0 0 4px' }}>All caught up!</p>
+            <p style={{ color: 'var(--text-2)', fontSize: 12, margin: 0 }}>No pending action items right now.</p>
           </div>
         ) : (
-          visibleActions.map((action, i) => (
+          visibleActions.map((action) => (
             <div
               key={action.id}
               onClick={() => action.emailId && navigate(`/inbox?emailId=${action.emailId}`)}
-              className={`animate-fade-in delay-${(i + 1) * 50}`}
               style={{
                 display: 'flex',
                 alignItems: 'flex-start',
-                gap: 10,
-                padding: '10px 14px',
+                gap: 12,
+                padding: '10px 16px',
                 borderBottom: '1px solid var(--border)',
                 cursor: action.emailId ? 'pointer' : 'default',
-                transition: 'background 0.15s ease',
+                transition: 'background-color 0.15s ease',
               }}
-              onMouseEnter={e => { if (action.emailId) (e.currentTarget as HTMLElement).style.background = 'var(--s2)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = ''; }}
+              onMouseEnter={e => { if (action.emailId) (e.currentTarget as HTMLElement).style.background = 'var(--surface)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
             >
-              {/* Checkbox */}
-              <button
-                onClick={(e) => handleComplete(e, action.id)}
-                title="Mark complete"
-                style={{
-                  width: 16,
-                  height: 16,
-                  borderRadius: 3,
-                  border: '1px solid var(--border)',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  marginTop: 2,
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = '#40c070';
-                  (e.currentTarget as HTMLElement).style.background = 'rgba(64,192,112,0.10)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-                  (e.currentTarget as HTMLElement).style.background = 'transparent';
-                }}
-              >
-                {completing.has(action.id) && (
-                  <Check size={10} style={{ color: '#40c070' }} />
-                )}
-              </button>
+              <input
+                type="checkbox"
+                checked={completing.has(action.id)}
+                onChange={(e) => handleComplete(e as any, action.id)}
+                style={{ marginTop: 2, cursor: 'pointer', accentColor: 'var(--accent)' }}
+              />
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: 12, color: 'var(--t1)', margin: '0 0 3px', lineHeight: 1.4, fontWeight: 500 }}>
+                <p style={{ fontSize: 13, color: 'var(--text-1)', margin: '0 0 2px', lineHeight: 1.4, fontWeight: 500 }}>
                   {action.actionDescription}
                 </p>
                 {action.emailSubject && (
-                  <p style={{ fontSize: 10, color: 'var(--t3)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-2)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {action.emailSubject}
                   </p>
                 )}
-                {action.deadline && (
-                  <p style={{ fontSize: 9, color: '#f0c030', margin: 0, display: 'flex', alignItems: 'center', gap: 3, fontFamily: 'JetBrains Mono, monospace' }}>
-                    <Clock size={8} /> {formatDateTime(action.deadline)}
-                  </p>
-                )}
               </div>
-
-              <span
-                style={{
-                  padding: '1px 5px',
-                  background: 'rgba(79,158,255,0.08)',
-                  border: '1px solid rgba(79,158,255,0.20)',
-                  borderRadius: 3,
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: '#4f9eff',
-                  fontFamily: 'JetBrains Mono, monospace',
-                  flexShrink: 0,
-                }}
-              >
-                {action.actionType}
-              </span>
             </div>
           ))
         )}

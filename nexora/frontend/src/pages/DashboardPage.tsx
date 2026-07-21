@@ -9,7 +9,7 @@ import { ActionItemList } from '../components/dashboard/ActionItemList';
 import { StatCard } from '../components/common/StatCard';
 import { useAuthStore } from '../store/authStore';
 import { useEmails } from '../hooks/useEmails';
-import { CAT_COLORS, CATEGORY_LABELS } from '../utils/catColors';
+import { CAT_COLORS } from '../utils/catColors';
 import { Mail, Clock, ListCheck, Tag, RefreshCw } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
@@ -17,7 +17,6 @@ export const DashboardPage: React.FC = () => {
   const { sync, isSyncing } = useEmails();
   const navigate = useNavigate();
 
-  // Auto-trigger Gmail sync on first login (no lastSyncedAt means brand new)
   const hasSynced = React.useRef(false);
   React.useEffect(() => {
     if (user && !user.lastSyncedAt && !hasSynced.current) {
@@ -30,7 +29,6 @@ export const DashboardPage: React.FC = () => {
     queryKey: ['dashboard-summary'],
     queryFn: dashboardApi.getSummary,
     staleTime: 300_000,
-    // Refetch after sync finishes
     refetchInterval: isSyncing ? 3000 : false,
   });
 
@@ -39,110 +37,97 @@ export const DashboardPage: React.FC = () => {
   const firstName = user?.name?.split(' ')[0] ?? 'there';
 
   return (
-    <AppShell
-      title="Dashboard"
-      subtitle={`${greeting}, ${firstName}`}
-    >
-      <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {/* Sync banner for first-time users */}
+    <AppShell>
+      <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-1)', margin: 0, fontFamily: 'Google Sans, Roboto, sans-serif' }}>
+            {greeting}, {firstName}
+          </h1>
+          <p style={{ fontSize: 13, color: 'var(--text-2)', margin: '4px 0 0' }}>
+            Here is your Gmail intelligence summary and action item feed.
+          </p>
+        </div>
+
         {isSyncing && (
           <div
-            className="animate-fade-in"
+            className="surface-elevated animate-fade-in"
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
-              padding: '10px 14px',
-              background: 'rgba(79,158,255,0.06)',
-              border: '1px solid rgba(79,158,255,0.18)',
-              borderRadius: 8,
+              gap: 12,
+              padding: '12px 16px',
+              borderLeft: '4px solid var(--accent)',
             }}
           >
-            <RefreshCw size={13} style={{ color: '#4f9eff' }} className="animate-spin" />
-            <span style={{ fontSize: 12, color: '#4f9eff', fontWeight: 500 }}>
-              Syncing your Gmail inbox… This may take a moment on first login.
+            <RefreshCw size={16} style={{ color: 'var(--accent)' }} className="animate-spin" />
+            <span style={{ fontSize: 13, color: 'var(--text-1)', fontWeight: 500 }}>
+              Syncing your Gmail inbox with Nexora AI intelligence...
             </span>
           </div>
         )}
+
         {isLoading ? (
           <DashboardSkeleton />
         ) : (
           <>
-            {/* ROW 1 — 4 StatCards */}
-            <div
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}
-              className="animate-fade-in"
-            >
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }} className="animate-fade-in">
               <StatCard
-                label="Unread"
+                label="Unread Mail"
                 value={data?.unreadCount ?? 0}
-                accentColor="#f05050"
+                accentColor="var(--danger)"
                 icon={Mail}
-                sub="emails need attention"
+                sub="require attention"
               />
               <StatCard
-                label="Deadlines"
+                label="Upcoming Deadlines"
                 value={data?.upcomingDeadlines?.length ?? 0}
-                accentColor="#f0c030"
+                accentColor="var(--star)"
                 icon={Clock}
                 sub="next 7 days"
               />
               <StatCard
                 label="Pending Actions"
                 value={data?.pendingActions?.length ?? 0}
-                accentColor="#4f9eff"
+                accentColor="var(--accent)"
                 icon={ListCheck}
                 sub="action items"
               />
               <StatCard
                 label="Categories"
                 value={Object.keys(data?.categoryCounts ?? {}).length}
-                accentColor="#40c070"
+                accentColor="var(--cat-assignment)"
                 icon={Tag}
-                sub="active categories"
+                sub="classified topics"
               />
             </div>
 
-            {/* ROW 2 — Category pill row */}
             {Object.keys(data?.categoryCounts ?? {}).length > 0 && (
-              <div className="animate-fade-in delay-100">
-                <p className="section-label" style={{ marginBottom: 8 }}>CATEGORY OVERVIEW</p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <div className="animate-fade-in">
+                <p className="section-label" style={{ marginBottom: 8 }}>CATEGORY LABELS</p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {Object.entries(data?.categoryCounts ?? {}).map(([cat, count]) => {
                     const cfg = CAT_COLORS[cat];
-                    const color = cfg?.color ?? '#3d5570';
+                    const color = cfg?.color ?? '#5f6368';
                     return (
                       <button
                         key={cat}
                         onClick={() => navigate(`/inbox?category=${cat}`)}
-                        title={`View ${CATEGORY_LABELS[cat] ?? cat} emails`}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: 6,
-                          padding: '4px 10px',
-                          background: color + '12',
-                          border: `1px solid ${color}22`,
-                          borderRadius: 6,
+                          padding: '4px 12px',
+                          background: color + '18',
+                          border: `1px solid ${color}30`,
+                          borderRadius: 16,
                           color,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          fontFamily: 'JetBrains Mono, monospace',
+                          fontSize: 12,
+                          fontWeight: 600,
                           cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                          letterSpacing: '0.04em',
-                        }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLElement).style.background = color + '22';
-                          (e.currentTarget as HTMLElement).style.borderColor = color + '40';
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLElement).style.background = color + '12';
-                          (e.currentTarget as HTMLElement).style.borderColor = color + '22';
                         }}
                       >
                         {cfg?.label ?? cat}
-                        <span style={{ opacity: 0.7 }}>{count as number}</span>
+                        <span style={{ fontSize: 11, opacity: 0.8 }}>({count as number})</span>
                       </button>
                     );
                   })}
@@ -150,35 +135,24 @@ export const DashboardPage: React.FC = () => {
               </div>
             )}
 
-            {/* ROW 3 — Bento grid */}
-            <div
-              style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 10 }}
-              className="animate-fade-in delay-200"
-            >
-              {/* Priority Feed */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 16 }} className="animate-fade-in">
               <PriorityFeed emails={data?.priorityEmails ?? []} />
 
-              {/* Upcoming Deadlines */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <p className="section-label">UPCOMING DEADLINES</p>
                 {(data?.upcomingDeadlines?.length ?? 0) === 0 ? (
-                  <div className="surface" style={{ padding: 32, textAlign: 'center' }}>
-                    <div style={{ fontSize: 22, marginBottom: 8 }}>🎉</div>
-                    <p style={{ color: 'var(--t2)', fontSize: 12, fontWeight: 600, margin: '0 0 4px' }}>No deadlines</p>
-                    <p style={{ color: 'var(--t3)', fontSize: 10, margin: 0 }}>All caught up!</p>
+                  <div className="surface-elevated" style={{ padding: 24, textAlign: 'center' }}>
+                    <p style={{ color: 'var(--text-2)', fontSize: 13, margin: 0 }}>No deadlines in next 7 days</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {data?.upcomingDeadlines?.map((email: any, i: number) => (
-                      <div key={email.id} className={`animate-fade-in delay-${(i + 1) * 50}`}>
-                        <DeadlineCard email={email} />
-                      </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {data?.upcomingDeadlines?.map((email: any) => (
+                      <DeadlineCard key={email.id} email={email} />
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Pending Actions */}
               <ActionItemList actions={data?.pendingActions ?? []} />
             </div>
           </>
@@ -189,14 +163,14 @@ export const DashboardPage: React.FC = () => {
 };
 
 const DashboardSkeleton: React.FC = () => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }} className="animate-fade-in">
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }} className="animate-fade-in">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
       {[...Array(4)].map((_, i) => (
-        <div key={i} className="skeleton" style={{ height: 88 }} />
+        <div key={i} className="skeleton" style={{ height: 90 }} />
       ))}
     </div>
-    <div className="skeleton" style={{ height: 44 }} />
-    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 10 }}>
+    <div className="skeleton" style={{ height: 40 }} />
+    <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr 1fr', gap: 16 }}>
       {[...Array(3)].map((_, i) => (
         <div key={i} className="skeleton" style={{ height: 260 }} />
       ))}

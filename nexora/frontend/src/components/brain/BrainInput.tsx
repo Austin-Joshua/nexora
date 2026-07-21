@@ -1,5 +1,5 @@
-import React, { useState, useRef, type KeyboardEvent } from 'react';
-import { Send } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Sparkles } from 'lucide-react';
 
 interface BrainInputProps {
   onSend: (query: string) => void;
@@ -7,97 +7,88 @@ interface BrainInputProps {
 }
 
 export const BrainInput: React.FC<BrainInputProps> = ({ onSend, isLoading }) => {
-  const [value, setValue] = useState('');
-  const [focused, setFocused] = useState(false);
+  const [query, setQuery] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSend = () => {
-    const trimmed = value.trim();
-    if (!trimmed || isLoading) return;
-    onSend(trimmed);
-    setValue('');
+  useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
+  }, [query]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim() || isLoading) return;
+    onSend(query.trim());
+    setQuery('');
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSubmit(e);
     }
   };
 
-  const handleInput = () => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-  };
-
-  const canSend = !!value.trim() && !isLoading;
+  const canSend = query.trim().length > 0 && !isLoading;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        gap: 10,
-        padding: '8px 12px',
-        background: 'var(--s1)',
-        border: `1px solid ${focused ? 'rgba(79,158,255,0.45)' : 'var(--border)'}`,
-        borderRadius: 8,
-        transition: 'border-color 0.15s ease',
-      }}
-    >
-      <textarea
-        ref={textareaRef}
-        id="brain-query-input"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        onInput={handleInput}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        placeholder="Ask Nexora Brain a question about your emails..."
-        rows={1}
+    <form onSubmit={handleSubmit} style={{ position: 'relative' }}>
+      <div
         style={{
-          flex: 1,
-          background: 'transparent',
-          border: 'none',
-          outline: 'none',
-          resize: 'none',
-          fontSize: 12,
-          color: 'var(--t1)',
-          minHeight: 20,
-          maxHeight: 120,
-          lineHeight: 1.5,
-          fontFamily: 'inherit',
-          padding: 0,
-        }}
-        disabled={isLoading}
-      />
-      <button
-        id="brain-send-btn"
-        onClick={handleSend}
-        disabled={!canSend}
-        style={{
-          width: 26,
-          height: 26,
-          borderRadius: 6,
-          border: 'none',
-          background: canSend ? 'var(--gold)' : 'var(--border)',
-          color: canSend ? '#080c12' : 'var(--t3)',
-          cursor: canSend ? 'pointer' : 'not-allowed',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          transition: 'all 0.15s ease',
+          alignItems: 'flex-end',
+          gap: 10,
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: 24,
+          padding: '8px 12px 8px 16px',
         }}
       >
-        <Send size={12} />
-      </button>
-    </div>
+        <Sparkles size={18} style={{ color: 'var(--accent)', flexShrink: 0, marginBottom: 8 }} />
+        <textarea
+          ref={textareaRef}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Ask Nexora Brain about your emails..."
+          rows={1}
+          disabled={isLoading}
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            resize: 'none',
+            fontSize: 14,
+            color: 'var(--text-1)',
+            maxHeight: 120,
+            fontFamily: 'Google Sans, Roboto, sans-serif',
+            padding: '6px 0',
+          }}
+        />
+        <button
+          type="submit"
+          disabled={!canSend}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            background: canSend ? 'var(--accent)' : 'var(--border)',
+            border: 'none',
+            color: '#ffffff',
+            cursor: canSend ? 'pointer' : 'not-allowed',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            transition: 'background 0.15s ease',
+          }}
+        >
+          <Send size={16} />
+        </button>
+      </div>
+    </form>
   );
 };

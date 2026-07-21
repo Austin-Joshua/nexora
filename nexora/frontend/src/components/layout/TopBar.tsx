@@ -1,48 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Search, Sun, Moon, CheckCircle, RefreshCw } from 'lucide-react';
+import { Menu, Search, SlidersHorizontal, Sun, Moon, Bell, RefreshCw, LogOut, Settings as SettingsIcon, CheckCircle } from 'lucide-react';
 import { useNotificationStore } from '../../store/notificationStore';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { useEmails } from '../../hooks/useEmails';
 import { useEmailStore } from '../../store/emailStore';
 import { useAuthStore } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { CAT_COLORS } from '../../utils/catColors';
 
 interface TopBarProps {
-  title: string;
-  subtitle?: string;
+  onToggleSidebar: () => void;
 }
 
-function useRelativeTime(date: Date | null) {
-  const [label, setLabel] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!date) { setLabel(null); return; }
-    const update = () => {
-      const diffMs = Date.now() - date.getTime();
-      const mins = Math.floor(diffMs / 60000);
-      if (mins < 1) setLabel('just now');
-      else if (mins === 1) setLabel('1m ago');
-      else if (mins < 60) setLabel(`${mins}m ago`);
-      else {
-        const hrs = Math.floor(mins / 60);
-        setLabel(hrs === 1 ? '1h ago' : `${hrs}h ago`);
-      }
-    };
-    update();
-    const id = setInterval(update, 30_000);
-    return () => clearInterval(id);
-  }, [date]);
-
-  return label;
-}
-
-export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
+export const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar }) => {
   const { unreadCount, togglePanel, isPanelOpen } = useNotificationStore();
-  const { sync, isSyncing } = useEmails();
-  const { setSearchQuery, searchQuery } = useEmailStore();
+  const { isSyncing } = useEmails();
+  const { setSearchQuery, searchQuery, setActiveCategory } = useEmailStore();
   const { user } = useAuthStore();
+  const { handleLogout } = useAuth();
+  const navigate = useNavigate();
+
   const [searchFocused, setSearchFocused] = useState(false);
-  const lastSyncedAt = user?.lastSyncedAt ? new Date(user.lastSyncedAt) : null;
-  const lastSyncLabel = useRelativeTime(lastSyncedAt);
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
 
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('theme');
@@ -51,228 +32,338 @@ export const TopBar: React.FC<TopBarProps> = ({ title, subtitle }) => {
   });
 
   useEffect(() => {
-    if (theme === 'light') {
-      document.documentElement.classList.add('light');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('light');
+      document.documentElement.classList.remove('dark');
     }
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  const initials = user?.name
+    ? user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'NX';
+
   return (
     <header
       style={{
-        height: 48,
-        background: 'var(--s1)',
+        height: 64,
+        background: 'var(--bg)',
         borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 16px',
         flexShrink: 0,
-        position: 'relative',
+        gap: 16,
+        zIndex: 40,
       }}
     >
-      {/* Left: Title */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div>
-          <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--t1)', margin: 0, lineHeight: 1 }}>
-            {title}
-          </h2>
-          {subtitle && (
-            <p style={{ fontSize: 11, color: 'var(--t3)', margin: 0, marginTop: 2, lineHeight: 1 }}>
-              {subtitle}
-            </p>
-          )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: 232, flexShrink: 0 }}>
+        <button
+          onClick={onToggleSidebar}
+          title="Toggle sidebar"
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text-2)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'background-color 0.15s ease',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+        >
+          <Menu size={20} />
+        </button>
+
+        <div
+          onClick={() => navigate('/dashboard')}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+        >
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: 'var(--accent)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: 16,
+            }}
+          >
+            N
+          </div>
+          <span style={{ fontSize: 20, fontWeight: 500, color: 'var(--text-1)', letterSpacing: '-0.02em', fontFamily: 'Google Sans, Roboto, sans-serif' }}>
+            Nexora
+          </span>
         </div>
       </div>
 
-      {/* Right cluster */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-        {/* Expandable search */}
+      <div style={{ flex: 1, maxWidth: 720, position: 'relative' }}>
         <div
           style={{
-            position: 'relative',
-            width: searchFocused ? 160 : 36,
-            transition: 'width 0.25s ease',
+            display: 'flex',
+            alignItems: 'center',
+            height: 46,
+            background: searchFocused ? 'var(--bg)' : 'var(--surface)',
+            border: `1px solid ${searchFocused ? 'var(--accent)' : 'transparent'}`,
+            boxShadow: searchFocused ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+            borderRadius: 24,
+            padding: '0 16px',
+            gap: 12,
+            transition: 'all 0.15s ease',
           }}
         >
-          <Search
-            size={13}
-            style={{
-              position: 'absolute',
-              left: 10,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--t3)',
-              pointerEvents: 'none',
-            }}
-          />
+          <Search size={18} style={{ color: 'var(--text-2)', flexShrink: 0 }} />
           <input
             id="topbar-search"
             type="text"
-            placeholder={searchFocused ? 'Search emails...' : ''}
+            placeholder="Search mail in Nexora..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             style={{
-              width: '100%',
-              height: 30,
-              background: 'var(--s1)',
-              border: '1px solid var(--border)',
-              borderRadius: 7,
-              paddingLeft: 30,
-              paddingRight: 8,
-              fontSize: 11,
-              color: 'var(--t1)',
+              flex: 1,
+              height: '100%',
+              background: 'transparent',
+              border: 'none',
+              fontSize: 14,
+              color: 'var(--text-1)',
               outline: 'none',
-              transition: 'border-color 0.15s ease',
-              ...(searchFocused ? { borderColor: 'rgba(79,158,255,0.45)' } : {}),
+              fontFamily: 'Google Sans, Roboto, sans-serif',
             }}
           />
-        </div>
-
-        {/* Sync status badge */}
-        {isSyncing ? (
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '2px 8px',
-              borderRadius: 9999,
-              background: 'rgba(79,158,255,0.10)',
-              border: '1px solid rgba(79,158,255,0.20)',
-              color: 'var(--blue)',
-              fontSize: 9,
-              fontFamily: 'JetBrains Mono, monospace',
-              whiteSpace: 'nowrap',
-              cursor: 'default',
-            }}
-          >
-            <RefreshCw size={8} className="animate-spin" />
-            Syncing...
-          </span>
-        ) : lastSyncLabel ? (
           <button
-            id="sync-btn"
-            onClick={() => sync()}
-            title="Click to sync"
+            onClick={() => setShowFilterDropdown(prev => !prev)}
+            title="Filter options"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '2px 8px',
-              borderRadius: 9999,
-              background: 'rgba(64,192,112,0.10)',
-              border: '1px solid rgba(64,192,112,0.20)',
-              color: '#40c070',
-              fontSize: 9,
-              fontFamily: 'JetBrains Mono, monospace',
-              whiteSpace: 'nowrap',
-              cursor: 'pointer',
-            }}
-          >
-            <CheckCircle size={8} />
-            ✓ Synced {lastSyncLabel}
-          </button>
-        ) : (
-          <button
-            id="sync-btn"
-            onClick={() => sync()}
-            title="Click to sync Gmail"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 4,
-              padding: '2px 8px',
-              borderRadius: 9999,
-              background: 'rgba(240,192,48,0.10)',
-              border: '1px solid rgba(240,192,48,0.20)',
-              color: '#f0c030',
-              fontSize: 9,
-              fontFamily: 'JetBrains Mono, monospace',
-              whiteSpace: 'nowrap',
-              cursor: 'pointer',
-            }}
-          >
-            <RefreshCw size={8} />
-            Sync Gmail
-          </button>
-        )}
-
-        {/* Theme toggle */}
-        <button
-          id="theme-toggle"
-          onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-          title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          style={{
-            width: 30,
-            height: 30,
-            borderRadius: 6,
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--t3)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'color 0.15s ease',
-          }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--t1)'; }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--t3)'; }}
-        >
-          {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
-        </button>
-
-        {/* Bell with red dot */}
-        <div style={{ position: 'relative' }}>
-          <button
-            id="notifications-btn"
-            onClick={togglePanel}
-            title="Notifications"
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 6,
-              background: isPanelOpen ? 'rgba(240,192,48,0.10)' : 'transparent',
-              border: isPanelOpen ? '1px solid rgba(240,192,48,0.22)' : 'none',
-              color: isPanelOpen ? 'var(--gold)' : 'var(--t3)',
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-2)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={e => {
-              if (!isPanelOpen) {
-                (e.currentTarget as HTMLElement).style.color = 'var(--t1)';
-              }
-            }}
-            onMouseLeave={e => {
-              if (!isPanelOpen) {
-                (e.currentTarget as HTMLElement).style.color = 'var(--t3)';
-              }
+              padding: 4,
+              borderRadius: '50%',
             }}
           >
-            <Bell size={14} />
+            <SlidersHorizontal size={18} />
+          </button>
+        </div>
+
+        {showFilterDropdown && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 52,
+              left: 0,
+              right: 0,
+              background: 'var(--bg)',
+              border: '1px solid var(--border)',
+              borderRadius: 12,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+              padding: 16,
+              zIndex: 50,
+            }}
+            className="animate-fade-in"
+          >
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', margin: '0 0 10px', textTransform: 'uppercase' }}>
+              FILTER BY CATEGORY
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
+              <button
+                onClick={() => { setActiveCategory('ALL'); setShowFilterDropdown(false); }}
+                style={{ padding: '4px 12px', borderRadius: 12, fontSize: 12, border: '1px solid var(--border)', background: 'var(--surface)', cursor: 'pointer', color: 'var(--text-1)' }}
+              >
+                All Categories
+              </button>
+              {Object.keys(CAT_COLORS).map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => { setActiveCategory(cat as any); navigate(`/inbox?category=${cat}`); setShowFilterDropdown(false); }}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: 12,
+                    fontSize: 12,
+                    border: '1px solid var(--border)',
+                    background: 'var(--surface)',
+                    cursor: 'pointer',
+                    color: CAT_COLORS[cat].color,
+                    fontWeight: 500,
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+        <div style={{ fontSize: 11, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 4 }}>
+          {isSyncing ? (
+            <span style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <RefreshCw size={12} className="animate-spin" /> Syncing...
+            </span>
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <CheckCircle size={11} style={{ color: 'var(--success)' }} /> Synced
+            </span>
+          )}
+        </div>
+
+        <button
+          onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
+          title="Toggle theme"
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: '50%',
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text-2)',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+        </button>
+
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={togglePanel}
+            title="Notifications"
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              background: isPanelOpen ? 'var(--surface-2)' : 'transparent',
+              border: 'none',
+              color: 'var(--text-2)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+            }}
+          >
+            <Bell size={18} />
             {unreadCount > 0 && (
               <span
-                className="animate-scale-in"
                 style={{
                   position: 'absolute',
-                  top: 4,
-                  right: 4,
-                  width: 7,
-                  height: 7,
+                  top: 8,
+                  right: 8,
+                  width: 8,
+                  height: 8,
                   borderRadius: '50%',
-                  background: '#f05050',
+                  background: 'var(--danger)',
                 }}
               />
             )}
           </button>
           <NotificationPanel />
+        </div>
+
+        <div style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowAccountMenu(prev => !prev)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: 'var(--accent)',
+              border: 'none',
+              color: '#ffffff',
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {initials}
+          </button>
+
+          {showAccountMenu && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 44,
+                right: 0,
+                width: 220,
+                background: 'var(--bg)',
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                padding: '12px 0',
+                zIndex: 50,
+              }}
+              className="animate-fade-in"
+            >
+              <div style={{ padding: '0 16px 10px', borderBottom: '1px solid var(--border)' }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-1)', margin: 0 }}>
+                  {user?.name || 'User'}
+                </p>
+                <p style={{ fontSize: 11, color: 'var(--text-2)', margin: '2px 0 0' }}>
+                  {user?.email || ''}
+                </p>
+              </div>
+
+              <button
+                onClick={() => { navigate('/settings'); setShowAccountMenu(false); }}
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  fontSize: 13,
+                  color: 'var(--text-1)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                <SettingsIcon size={16} /> Settings
+              </button>
+
+              <button
+                onClick={() => { handleLogout(); setShowAccountMenu(false); }}
+                style={{
+                  width: '100%',
+                  padding: '8px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  fontSize: 13,
+                  color: 'var(--danger)',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

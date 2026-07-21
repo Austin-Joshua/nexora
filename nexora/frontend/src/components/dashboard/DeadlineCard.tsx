@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Email } from '../../types/Email';
 import { formatDateTime } from '../../utils/formatDate';
-import { Calendar } from 'lucide-react';
+import { Calendar, AlertTriangle } from 'lucide-react';
 import { CategoryTag } from '../common/CategoryTag';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,65 +14,53 @@ export const DeadlineCard: React.FC<DeadlineCardProps> = ({ email }) => {
 
   const deadlineDate = email.deadlineDetected ? new Date(email.deadlineDetected) : null;
   const now = new Date();
-  const daysUntil = deadlineDate
-    ? Math.ceil((deadlineDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-    : null;
-  const isUrgent = daysUntil !== null && daysUntil <= 2;
+  const diffMs = deadlineDate ? deadlineDate.getTime() - now.getTime() : null;
+  const daysUntil = diffMs !== null ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : null;
+
+  const isOverdue = diffMs !== null && diffMs < 0;
+  const isUrgent = isOverdue || (daysUntil !== null && daysUntil <= 2);
+
+  const getDeadlineText = () => {
+    if (!deadlineDate) return '';
+    if (isOverdue) {
+      const days = Math.abs(daysUntil || 0);
+      return days === 0 ? 'Overdue (Earlier today)' : `Overdue by ${days}d`;
+    }
+    if (daysUntil === 0) return 'Due Today!';
+    if (daysUntil === 1) return 'Due Tomorrow';
+    return `Due in ${daysUntil} days`;
+  };
 
   return (
     <div
       onClick={() => navigate(`/inbox?emailId=${email.id}`)}
+      className="surface-elevated"
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
         padding: '10px 14px',
-        background: 'var(--s1)',
-        border: `1px solid ${isUrgent ? 'rgba(240,80,80,0.30)' : 'var(--border)'}`,
-        borderRadius: 8,
         cursor: 'pointer',
-        transition: 'all 0.15s ease',
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.background = 'var(--s2)';
-        (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-b)';
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.background = 'var(--s1)';
-        (e.currentTarget as HTMLElement).style.borderColor = isUrgent ? 'rgba(240,80,80,0.30)' : 'var(--border)';
+        borderLeft: `4px solid ${isUrgent ? 'var(--danger)' : 'var(--star)'}`,
       }}
     >
-      {/* Calendar icon */}
-      <div
-        style={{
-          width: 26,
-          height: 26,
-          borderRadius: 6,
-          background: isUrgent ? 'rgba(240,80,80,0.12)' : 'rgba(240,192,48,0.10)',
-          border: `1px solid ${isUrgent ? 'rgba(240,80,80,0.25)' : 'rgba(240,192,48,0.20)'}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Calendar size={12} style={{ color: isUrgent ? '#f05050' : '#f0c030' }} />
+      <div style={{ color: isUrgent ? 'var(--danger)' : 'var(--star)', flexShrink: 0 }}>
+        {isOverdue ? <AlertTriangle size={16} /> : <Calendar size={16} />}
       </div>
 
-      {/* Content */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--t1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {email.subject}
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {email.subject || '(no subject)'}
         </p>
-        {email.deadlineDetected && (
-          <p style={{ fontSize: 9, color: '#f0c030', margin: 0, fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>
-            {daysUntil !== null && daysUntil <= 0
-              ? 'Due today!'
-              : daysUntil === 1
-              ? 'Due tomorrow'
-              : formatDateTime(email.deadlineDetected)}
-          </p>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: isUrgent ? 'var(--danger)' : 'var(--star)' }}>
+            {getDeadlineText()}
+          </span>
+          <span style={{ fontSize: 11, color: 'var(--text-3)' }}>•</span>
+          <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
+            {formatDateTime(email.deadlineDetected)}
+          </span>
+        </div>
       </div>
 
       <CategoryTag category={email.category} />
